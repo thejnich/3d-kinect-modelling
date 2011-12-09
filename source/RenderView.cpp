@@ -56,6 +56,15 @@ RenderView::~RenderView()
 	emit pausePlease();
 }
 
+void RenderView::setStatusBar(QStatusBar* status)
+{
+	if (status)
+	{
+		statusBar = status;
+		updateStatusBar(LIVE);
+	}
+}
+
 // from Steven Longay, keeps the aspect ratio when resizing window
 void RenderView::resizeGL(int w, int h)
 {
@@ -247,6 +256,26 @@ void RenderView::setZoom(int z)
 	}
 }
 
+void RenderView::updateStatusBar(APP_STATE st)
+{
+	state = st;
+	switch(state)
+	{
+	case LIVE:
+		statusBar->showMessage("To begin the modelling process, hit [Spacebar] or [Pause Button]");
+		break;
+	case PAUSED:
+		statusBar->showMessage("To detect the objects in the scene, roughly mark regions with [Ctrl + Left Click] on the upper left view. Hit [D] when finished");
+		break;
+	case DETECTED:
+		statusBar->showMessage("To select one object in the scene, [Ctrl + Left Click] on the upper left view");
+		break;
+	case SELECTED:
+		statusBar->showMessage("The selected model is ready for exporting");
+		break;
+	}
+}
+
 void RenderView::wheelEvent(QWheelEvent *event)
 {
 	setZoom(event->delta() + zoom);
@@ -254,7 +283,7 @@ void RenderView::wheelEvent(QWheelEvent *event)
 
 void RenderView::mousePressEvent(QMouseEvent *event)
 {
-	if(ctrlPressed && (nobjects == 0)) {
+	if(ctrlPressed && (nobjects == 0) && (state == PAUSED)) {
 		if(xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0)
 		{
 			currentMarker.points.push_back(event->pos());
@@ -263,7 +292,7 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 			detector.startMarkingRegion(i, j);
 		}
 	}
-	else if(ctrlPressed && (nobjects > 0)) {
+	else if(ctrlPressed && (nobjects > 0) && (state == DETECTED || state == SELECTED)) {
 		if(xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0)
 		{
 			for (int p = 0; p < 640 * 480; p++)
@@ -279,6 +308,7 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
 			selectedObject = objects.at(j * 640 + i);
+			updateStatusBar(SELECTED);
 
 			bool first = true;
 			for (int p = 0; p < 640 * 480; p++)
@@ -307,7 +337,7 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 
 void RenderView::mouseReleaseEvent(QMouseEvent *event)
 {
-	if (ctrlPressed) {
+	if (ctrlPressed && (state == PAUSED)) {
 		markerList.push_back(currentMarker);
 		currentMarker.clear();
 		detector.stopMarkingRegion();
@@ -320,7 +350,7 @@ void RenderView::mouseMoveEvent(QMouseEvent *event)
 	int dy = event->y() - lastPos.y();
 
 	if (event->buttons() & Qt::LeftButton) {
-		if(ctrlPressed && xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0 && (nobjects == 0)) {
+		if(ctrlPressed && xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0 && (nobjects == 0) && (state == PAUSED)) {
 			currentMarker.points.push_back(event->pos());
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
@@ -353,11 +383,13 @@ void RenderView::setFrontCutoff(int distance_cm)
 void RenderView::pause(bool paused)
 {
 	if (paused) {
+		updateStatusBar(PAUSED);
 		m_device->stopDepth();
 		m_device->stopVideo();
 		detector.init(depth_rgb, 640, 480);
 	}
 	else {
+		updateStatusBar(LIVE);
 		m_device->startVideo();
 		m_device->startDepth();
 		nobjects = selectedObject = 0;
@@ -392,19 +424,25 @@ void RenderView::clearMarkerList() {
 
 void RenderView::detect()
 {
-	detector.detect(nobjects, objects, depth_rgb);
-	qDebug() << nobjects << " object(s) detected";
-	clearMarkerList();
+	if (state == PAUSED)
+	{
+		detector.detect(nobjects, objects, depth_rgb);
+		updateStatusBar(DETECTED);
+		clearMarkerList();
+	}
 }
 
 void RenderView::renderMarkerList() 
 {
-	if(ctrlPressed) {
-		renderMarker(&currentMarker);
-	}
+	if (state == PAUSED)
+	{
+		if(ctrlPressed) {
+			renderMarker(&currentMarker);
+		}
 
-	for(int i = 0; i < (int)markerList.size(); ++i) {
-		renderMarker(&markerList[i]);
+		for(int i = 0; i < (int)markerList.size(); ++i) {
+			renderMarker(&markerList[i]);
+		}
 	}
 }
 

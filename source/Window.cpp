@@ -47,6 +47,8 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 
 	rearCutoffPlane->setValue(10*100);
 	frontCutoffPlane->setValue(0);
+
+	renderView->setStatusBar(statusBar());
 }
 
 QSlider *Window::createCutoffSlider()

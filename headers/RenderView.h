@@ -22,6 +22,13 @@ struct marker {
 	void clear(){points.clear();}
 };
 
+typedef enum {
+	LIVE,
+	PAUSED,
+	DETECTED,
+	SELECTED
+} APP_STATE;
+
 class RenderView : public QGLWidget {
 
 	Q_OBJECT
@@ -29,6 +36,7 @@ class RenderView : public QGLWidget {
 public:
 	RenderView();
 	~RenderView();
+	void setStatusBar(QStatusBar* status);
 
 	QSize sizeHint() const;
 	QSize minimumSizeHint() const;
@@ -61,6 +69,7 @@ protected:
 	void setYRotation(int);
 	void setZRotation(int);
 	void setZoom(int);
+	void updateStatusBar(APP_STATE st);
 
 	int WIDGET_WIDTH;
 	int WIDGET_HEIGHT;
@@ -100,6 +109,9 @@ private:
 	std::vector<int> objects;
 	
 	float xWindowBound;
+
+	QStatusBar* statusBar;
+	APP_STATE state;
 };
 
 #endif /* _RENDER_VIEW_H */
