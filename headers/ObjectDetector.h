@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 #include <opencv/cv.h>
+#include "Primitives.h"
 
 class ObjectDetector
 {
@@ -17,7 +18,7 @@ public:
     void addMarkerToCurrentRegion(int x, int y);
     void stopMarkingRegion();
 
-    void detect(int& n, std::vector<int>& objects, std::vector<uint8_t>& map);
+    void detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map);
 
 private:
     cv::Point prevPt;

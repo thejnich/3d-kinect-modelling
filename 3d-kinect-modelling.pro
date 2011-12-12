@@ -17,7 +17,8 @@ HEADERS += headers/Mutex.h \
            headers/RenderView.h \
            headers/Window.h \
 		   headers/ObjWriter.h \
-    headers/ObjectDetector.h
+    headers/ObjectDetector.h \
+	 headers/Primitives.h
 SOURCES += source/main.cpp \
            source/RenderView.cpp \
            source/Window.cpp \

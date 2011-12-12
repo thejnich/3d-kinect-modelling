@@ -37,6 +37,7 @@ private:
 	QPushButton *pause_button;
 	QVBoxLayout *controlLayout;
 	QPushButton *exportObj_button;
+	QPushButton *exportPly_button;
 
 protected:
 	void keyPressEvent(QKeyEvent *event);

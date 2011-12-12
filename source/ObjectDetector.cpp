@@ -46,7 +46,7 @@ void ObjectDetector::stopMarkingRegion()
     prevPt = cv::Point(-1, -1);
 }
 
-void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<uint8_t>& map)
+void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map)
 {
     /* find contours based on the markers */
     std::vector< std::vector<cv::Point> > contours;
@@ -81,22 +81,38 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<uint8
     /* retrieve the objects */
     n = compCount;
     objects = std::vector<int>(markers.cols * markers.rows, 0);
-
+	for (int i = 0; i < compCount; ++i) {
+		boundRect b = {0,640,0,480}; // imax, imin, jmax, jmin
+		objBound.push_back(b);
+	}
     cv::Mat wshed(markers.size(), CV_8UC3);
 	 printf("marker rows: %d\nmarker cols: %d\n", markers.rows, markers.cols);
-    for(int i = 0; i < markers.rows; i++ )
-    {
-        for(int j = 0; j < markers.cols; j++ )
-        {
-            int idx = markers.at<int>(i,j);
-            objects.at(i * markers.cols + j) = idx;
-            if( idx == -1 )
-                wshed.at< cv::Vec3b >(i,j) = cv::Vec3b(255,255,255);
-            else if( idx <= 0 || idx > compCount )
-                wshed.at< cv::Vec3b >(i,j) = cv::Vec3b(0,0,0);
-            else
-                wshed.at< cv::Vec3b >(i,j) = colorTab[idx - 1];
-        }
+	 for(int j = 0; j < markers.rows; j++ )
+	 {
+		 for(int i = 0; i < markers.cols; i++ )
+		 {
+			 int idx = markers.at<int>(j,i);
+
+
+			 objects.at(j * markers.cols + i) = idx;
+			 if( idx == -1 )
+				 wshed.at< cv::Vec3b >(j,i) = cv::Vec3b(255,255,255);
+			 else if( idx <= 0 || idx > compCount )
+				 wshed.at< cv::Vec3b >(j,i) = cv::Vec3b(0,0,0);
+			 else {
+				 wshed.at< cv::Vec3b >(j,i) = colorTab[idx - 1];
+
+				 if(i > objBound[idx-1].imax)
+					 objBound[idx-1].imax = i;
+				 else if(i < objBound[idx-1].imin)
+					 objBound[idx-1].imin = i;
+
+				 if(j > objBound[idx-1].jmax)
+					 objBound[idx-1].jmax = j;
+				 else if(j < objBound[idx-1].jmin)
+					 objBound[idx-1].jmin = j;
+			 }
+		  }
     }
     wshed = wshed*0.5 + imgGray*0.5;
     std::copy(wshed.data, wshed.data + (wshed.size().width * wshed.size().height * 3), map.begin());

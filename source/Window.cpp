@@ -24,6 +24,10 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	exportObj_button = new QPushButton("Export .obj");
 	connect(exportObj_button, SIGNAL(clicked()), renderView, SLOT(exportObj()));
 
+	exportPly_button = new QPushButton("Export .ply");
+	connect(exportPly_button, SIGNAL(clicked()), renderView, SLOT(exportPly()));
+
+
 	/* front and rear depth buffer cutoffs */
 	QSlider *rearCutoffPlane = createCutoffSlider();
 	connect(rearCutoffPlane, SIGNAL(valueChanged(int)), renderView, SLOT(setRearCutoff(int)));
@@ -32,6 +36,7 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	connect(frontCutoffPlane, SIGNAL(valueChanged(int)), renderView, SLOT(setFrontCutoff(int)));
 
 	controlLayout->addWidget(pause_button);
+	controlLayout->addWidget(exportPly_button);
 	controlLayout->addWidget(exportObj_button);
 	controlLayout->addWidget(new QLabel(tr("Rear Cutoff Plane")));
 	controlLayout->addWidget(rearCutoffPlane);
@@ -75,6 +80,12 @@ void Window::keyPressEvent(QKeyEvent *e)
 		renderView->clearMarkerList();
 	else if (e->key() == Qt::Key_D)
 		renderView->detect();
+	else if (e->key() == Qt::Key_R)
+		renderView->renderMesh();
+	else if (e->key() == Qt::Key_T)
+		renderView->toggleTexDisplay();
+	else if (e->key() == Qt::Key_M)
+		renderView->toggleColorDisplay();
 	else
 		QWidget::keyPressEvent(e);
 }

@@ -16,6 +16,7 @@
 #include "ObjWriter.h"
 #include "MyFreenectDevice.h"
 #include "ObjectDetector.h"
+#include "Primitives.h"
 
 struct marker {
 	vector<QPoint> points;
@@ -26,7 +27,8 @@ typedef enum {
 	LIVE,
 	PAUSED,
 	DETECTED,
-	SELECTED
+	SELECTED,
+	RENDERED
 } APP_STATE;
 
 class RenderView : public QGLWidget {
@@ -43,10 +45,14 @@ public:
 	bool ctrlPressed;
 	void clearMarkerList();
 	void detect();
+	void renderMesh();
+	void toggleTexDisplay();
+	void toggleColorDisplay();
 
 public slots:
 	void pause(bool);
 	void exportObj();
+	void exportPly();
 	void setRearCutoff(int);
 	void setFrontCutoff(int);
 	void ctrlDown();
@@ -81,6 +87,7 @@ private:
 	Freenect::Freenect freenect;
 	GLuint gl_depth_tex;
 	GLuint gl_rgb_tex;
+	bool displayTex;
 	QPoint lastPos;
 	int xRot;
 	int yRot;
@@ -94,6 +101,7 @@ private:
 	std::vector<uint8_t> rgb;
 	std::vector<uint8_t> depth_rgb;
 	uint8_t saveColor[3];
+	bool displayColor;
 
 	vector<marker> markerList;
 	marker currentMarker;
@@ -108,6 +116,18 @@ private:
 	int selectedObject;
 	std::vector<int> objects;
 	
+	std::vector<boundRect> objBound;
+	std::vector<uint16_t> grid_depth;
+	std::vector<vertex> vertexList;
+	std::vector<tri_face> faceList;
+	
+	uint16_t findMaxDepthOfObject(int object);
+	uint16_t findMinDepthOfObject(int object);
+	void flattenObjectsBoundingArea(int object);
+	void calcAvgOfSquare(int iTopLeft, int jTopLeft, int h, int w, boundRect br);
+	void setDepthOrAvg(int i, int j, uint16_t depth);
+
+
 	float xWindowBound;
 
 	QStatusBar* statusBar;

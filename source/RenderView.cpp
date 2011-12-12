@@ -48,6 +48,14 @@ RenderView::RenderView()
 	saveColor[0] = 0;
 	saveColor[1] = 0;
 	saveColor[2] = 0;
+
+	objBound = std::vector<boundRect>();
+	grid_depth = std::vector<uint16_t>(640*480, USHRT_MAX);
+	vertexList = std::vector<vertex>();
+	faceList = std::vector<tri_face>();
+
+	displayTex = true;
+	displayColor = true;
 }
 RenderView::~RenderView() 
 {
@@ -113,6 +121,7 @@ void RenderView::initializeGL()
 	glEnable(GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glShadeModel(GL_SMOOTH);
+	glEnable(GL_NORMALIZE);
 
 	glGenTextures(1, &gl_depth_tex);
 	glBindTexture(GL_TEXTURE_2D, gl_depth_tex);
@@ -150,6 +159,46 @@ void RenderView::paintGL()
 	glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
 	glTranslatef(0.0f, 0.0f, -(float)zoom / 120.0f);
 
+	if(faceList.size()>0) {
+	
+		glEnable(GL_LIGHTING);
+		GLfloat specular[] = {1.0f, 2.0f, 1.0f, 1.0f};
+		GLfloat specularpos[] = {0.0f, 1.0f, 1.0f, 1.0f};
+		glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+		glLightfv(GL_LIGHT0, GL_POSITION, specularpos);
+		glEnable(GL_LIGHT0);
+		GLfloat ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+		
+		for(int i = 0; i < faceList.size(); ++i) {
+			
+		//glBegin(GL_LINE_LOOP);
+			glBegin(GL_TRIANGLES);
+			glVertex3f(vertexList[faceList[i].v1].x, vertexList[faceList[i].v1].y, vertexList[faceList[i].v1].z);
+			glVertex3f(vertexList[faceList[i].v2].x, vertexList[faceList[i].v2].y, vertexList[faceList[i].v2].z);
+			glVertex3f(vertexList[faceList[i].v3].x, vertexList[faceList[i].v3].y, vertexList[faceList[i].v3].z);
+			
+			float v1x = vertexList[faceList[i].v2].x - vertexList[faceList[i].v1].x;
+			float v1y = vertexList[faceList[i].v2].y - vertexList[faceList[i].v1].y;
+			float v1z = vertexList[faceList[i].v2].z - vertexList[faceList[i].v1].z;
+			float v2x = vertexList[faceList[i].v3].x - vertexList[faceList[i].v1].x;
+			float v2y = vertexList[faceList[i].v3].y - vertexList[faceList[i].v1].y;
+			float v2z = vertexList[faceList[i].v3].z - vertexList[faceList[i].v1].z;
+		
+			float nx = v1y * v2z - v1z * v2y;
+			float ny = v1z * v2x - v1x * v2z;
+			float nz = v1x * v2y - v1y * v2x;
+			
+			glNormal3f(nx,ny,nz);
+
+		glEnd();
+}
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+	
+	}
+	else {
 	glPointSize(2.);
 	glBegin(GL_POINTS);
 	float x = -1., y = 1.;
@@ -158,13 +207,21 @@ void RenderView::paintGL()
 		if( (depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject > 0 && objects[i] == selectedObject)) ||
 			(depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject == 0)) ) {
 			glVertex3f(x, y, (float)depth[i] / 100.0f);
-			glColor3uiv((GLuint*)&rgb[3 * (i+640*30 - 7)]);
+			if (displayColor)
+			{
+				glColor3uiv((GLuint*)&rgb[3 * (i+640*30 - 7)]);
+			}
+			else
+			{
+				glColor3f(1., 1., 1.);
+			}
 
 			/* linear interpolation
 			glVertex3f(x + (1.f/240.f/4.0f), y, 0.75 * (float)depth[i] / 100.0f + 0.25 * (float)depth[i+1] / 100.0f);
 			glVertex3f(x + (22.f/240.f/4.0f), y, 0.5 * (float)depth[i] / 100.0f + 0.5 * (float)depth[i+1] / 100.0f);
 			glVertex3f(x + (3.f/240.f/4.0f), y, 0.25 * (float)depth[i] / 100.0f + 0.75 * (float)depth[i+1] / 100.0f);
 			*/
+
 		}
 
 		if (i % 640 == 0) {
@@ -175,37 +232,41 @@ void RenderView::paintGL()
 		}
 	}
 	glEnd();
-
+}
 	glPopMatrix();
 
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, gl_depth_tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, &depth_rgb[0]);
+	if (displayTex)
+	{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, gl_depth_tex);
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, &depth_rgb[0]);
 
-	glBegin(GL_TRIANGLE_FAN);
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-	glTexCoord2f(0, 0); glVertex3f(0 - 2 ,1,0);
-	glTexCoord2f(1, 0); glVertex3f(xWindowBound,1,0);
-	glTexCoord2f(1, 1); glVertex3f(xWindowBound,0,0);
-	glTexCoord2f(0, 1); glVertex3f(0 - 2 ,0,0);
-	glEnd();
+		glBegin(GL_TRIANGLE_FAN);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+		glTexCoord2f(0, 0); glVertex3f(0 - 2 ,1,0);
+		glTexCoord2f(1, 0); glVertex3f(xWindowBound,1,0);
+		glTexCoord2f(1, 1); glVertex3f(xWindowBound,0,0);
+		glTexCoord2f(0, 1); glVertex3f(0 - 2 ,0,0);
+		glEnd();
 
-	glBindTexture(GL_TEXTURE_2D, gl_rgb_tex);
+		glBindTexture(GL_TEXTURE_2D, gl_rgb_tex);
+
 	
-	if (m_device->getVideoFormat() == FREENECT_VIDEO_RGB || m_device->getVideoFormat() == FREENECT_VIDEO_YUV_RGB)
-		glTexImage2D(GL_TEXTURE_2D, 0, 3, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, &rgb[0]);
-	else
-		glTexImage2D(GL_TEXTURE_2D, 0, 1, 640, 480, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &rgb[0]);
-	
-	glBegin(GL_TRIANGLE_FAN);
-	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-	glTexCoord2f(0, 0); glVertex3f(0 - 2, 0,0);
-	glTexCoord2f(1, 0); glVertex3f(xWindowBound, 0,0);
-	glTexCoord2f(1, 1); glVertex3f(xWindowBound,-1,0);
-	glTexCoord2f(0, 1); glVertex3f(0 - 2 ,-1,0);
-	glEnd();
+		if (m_device->getVideoFormat() == FREENECT_VIDEO_RGB || m_device->getVideoFormat() == FREENECT_VIDEO_YUV_RGB)
+			glTexImage2D(GL_TEXTURE_2D, 0, 3, 640, 480, 0, GL_RGB, GL_UNSIGNED_BYTE, &rgb[0]);
+		else
+			glTexImage2D(GL_TEXTURE_2D, 0, 1, 640, 480, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &rgb[0]);
 
-	glDisable(GL_TEXTURE_2D);
+		glBegin(GL_TRIANGLE_FAN);
+		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+		glTexCoord2f(0, 0); glVertex3f(0 - 2, 0,0);
+		glTexCoord2f(1, 0); glVertex3f(xWindowBound, 0,0);
+		glTexCoord2f(1, 1); glVertex3f(xWindowBound,-1,0);
+		glTexCoord2f(0, 1); glVertex3f(0 - 2 ,-1,0);
+		glEnd();
+
+		glDisable(GL_TEXTURE_2D);
+	}
 
 	renderMarkerList();
 
@@ -271,7 +332,10 @@ void RenderView::updateStatusBar(APP_STATE st)
 		statusBar->showMessage("To select one object in the scene, [Ctrl + Left Click] on the upper left view");
 		break;
 	case SELECTED:
-		statusBar->showMessage("The selected model is ready for exporting");
+		statusBar->showMessage("The selected model is ready for exporting as a point cloud (out.ply). Press R to render a mesh.");
+		break;
+	case RENDERED:
+		statusBar->showMessage("The mesh is ready for exporting as an obj file (out.obj)");
 		break;
 	}
 }
@@ -393,6 +457,8 @@ void RenderView::pause(bool paused)
 		m_device->startVideo();
 		m_device->startDepth();
 		nobjects = selectedObject = 0;
+		faceList.clear();
+		vertexList.clear();
 	}
 }
 
@@ -400,10 +466,21 @@ void RenderView::exportObj()
 {
 	/* ensure no data capture happens when trying to export */
 	emit pausePlease();
-	if(!ObjWriter::exportAsObj(depth, objects, selectedObject, frontCutoff, rearCutoff)) {
+	if(!ObjWriter::exportAsObj(vertexList, faceList)) {
 		QMessageBox::warning(this, "Export error", "Export failed");
 		return;
 	}
+}
+
+void RenderView::exportPly()
+{
+	/* ensure no data capture happens when trying to export */
+	emit pausePlease();
+	if(!ObjWriter::exportAsPly(depth, objects, selectedObject, frontCutoff, rearCutoff)) {
+		QMessageBox::warning(this, "Export error", "Export failed");
+		return;
+	}
+
 }
 
 void RenderView::ctrlDown() {
@@ -426,7 +503,7 @@ void RenderView::detect()
 {
 	if (state == PAUSED)
 	{
-		detector.detect(nobjects, objects, depth_rgb);
+		detector.detect(nobjects, objects, objBound, depth_rgb);
 		updateStatusBar(DETECTED);
 		clearMarkerList();
 	}
@@ -457,6 +534,16 @@ void RenderView::renderMarker(marker* m)
 	glEnd();
 }
 
+void RenderView::toggleTexDisplay()
+{
+	displayTex = !displayTex;
+}
+
+void RenderView::toggleColorDisplay()
+{
+	displayColor = !displayColor;
+}
+
 float RenderView::xToWorldCoord(int x)
 {
 	return (float)x/(float)WIDGET_WIDTH * 4 - 2;
@@ -474,3 +561,166 @@ void RenderView::worldCoordToPixelCoord(float x, float y, int &i, int &j)
 	r = fabs(1-yToWorldCoord(y))/1.0f;
 	j = (int)(r*480);
 }
+
+uint16_t RenderView::findMaxDepthOfObject(int object) {
+	uint16_t maxDepth = 0;
+	/*
+	for(int i = 0; i < (int)objects.size(); ++i) {
+		if((objects[i] == object) && (depth[i]>maxDepth))
+			maxDepth = depth[i];
+	}*/
+	boundRect b = objBound[object-1];
+	for(int i = b.imin; i <= b.imax; ++i) {
+		for(int j = b.jmin; j <= b.jmax; ++j) {
+			if((objects[j*640+i] == object) && (depth[j*640+i]>maxDepth) && (depth[j*640+i] < 65517))
+				maxDepth = depth[j*640+i];
+		}
+	}
+
+	qDebug() << "max depth: " << maxDepth;
+	return maxDepth;
+}
+
+uint16_t RenderView::findMinDepthOfObject(int object) {
+	uint16_t minDepth = 65517;
+	boundRect b = objBound[object-1];
+	for(int i = b.imin; i <= b.imax; ++i) {
+		for(int j = b.jmin; j <= b.jmax; ++j) {
+			if((objects[j*640+i] == object) && (depth[j*640+i]<minDepth) && (depth[j*640+i] > 0))
+				minDepth = depth[j*640+i];
+		}
+	}
+
+	qDebug() << "min depth: " << minDepth;
+	return minDepth;
+}
+
+void RenderView::flattenObjectsBoundingArea(int object) {
+	uint16_t maxDepth = findMaxDepthOfObject(object);
+	uint16_t minDepth = findMinDepthOfObject(object);
+
+	if (maxDepth > minDepth + 50)
+	{
+		maxDepth = minDepth + 30;
+	}
+
+	//maxDepth = 100;
+	boundRect b = objBound[object-1];
+	
+	for(int i = b.imin; i <= b.imax; ++i) {
+		for(int j = b.jmin; j <= b.jmax; ++j) {
+			if(depth[j*640+i] > maxDepth)
+				depth[j*640+i] = maxDepth;
+			else if (depth[j*640+i] < minDepth)
+				depth[j*640+i] = minDepth;
+		}
+	}
+
+}
+
+void RenderView::renderMesh() {
+	if(selectedObject <= 0)
+		return;
+	qDebug() << "attempting to render mesh...";
+
+	flattenObjectsBoundingArea(selectedObject);
+	int squareDim = 10;
+
+	boundRect b = objBound[selectedObject-1];
+	
+	for(int i = b.imin; b.imax-i >= squareDim; i+=squareDim) {
+		for(int j = b.jmin; b.jmax-j >= squareDim; j+=squareDim) {
+			calcAvgOfSquare(i,j,squareDim,squareDim,b);
+		}
+	}
+
+	// fill faceList and vertexList
+	uint8_t min = findMinDepthOfObject(selectedObject);
+	uint8_t max = findMaxDepthOfObject(selectedObject);
+	// add all vertices
+	vertexList.clear();
+	faceList.clear();
+	for(int j = b.jmin; b.jmax-j >= squareDim; j+=squareDim) {
+		for(int i = b.imin; b.imax-i >= squareDim; i+=squareDim) {
+			vertex v = {xToWorldCoord(i), yToWorldCoord(j), (float)grid_depth[j*640+i]/100.0f};
+			vertexList.push_back(v);
+		}
+		// last col
+		//vertex v = {xToWorldCoord(b.imax), yToWorldCoord(j), (float)grid_depth[j*640+b.imax]/100.0f};
+		//vertexList.push_back(v);
+	}
+
+	// last row
+	//for(int i = b.imin, j = b.jmax; i < b.imax-squareDim; i+=squareDim) {
+	//	vertex v = {xToWorldCoord(i), yToWorldCoord(j), (float)grid_depth[j*640+i]/100.0f};
+	//	vertexList.push_back(v);
+	//}
+	// bottom right vertex
+	//vertex v = {xToWorldCoord(b.imax), yToWorldCoord(b.jmax), (float)grid_depth[b.jmax*640+b.imax]/100.0f};
+	//vertexList.push_back(v);
+
+	int vertPerRow = (b.imax - b.imin)/squareDim;
+	for(int i = 0; i < (int)vertexList.size() - vertPerRow; ++i) {
+		tri_face f = {i, i+vertPerRow, i+1};
+		faceList.push_back(f);
+		tri_face f1 = {i+vertPerRow, i+vertPerRow+1, i+1};
+		faceList.push_back(f1);
+	}
+	updateStatusBar(RENDERED);	
+	qDebug() << "finished mesh render!";
+	qDebug() << "numFaces: " << faceList.size();
+}
+
+// use w and h in case we end up using rectangles
+// i,j coords of top left corner
+void RenderView::calcAvgOfSquare(int iTopLeft, int jTopLeft, int h, int w, boundRect br) {
+	
+	double sum = 0;
+	uint16_t avgDepth;
+
+	for(int i = iTopLeft; i <= iTopLeft + w; ++i) {
+		for(int j = jTopLeft; j <= jTopLeft+h; ++j) {
+			if( (i < br.imax) && (i > br.imin) && (j < br.jmax) && (j > br.jmin))
+				sum += depth[j*640+i];
+		}
+	}
+
+	// calculate average for this square
+	avgDepth = (uint16_t)(sum / (w*h));
+
+	// check if each of the four corners has been visited
+	// if not, set to avgDepth.
+	// if yes, set to avg between avgDepth and current value in grid_depth
+
+	int iRight = iTopLeft + w;
+	int jBot = jTopLeft + h;
+	if(iRight > br.imax)
+		iRight = br.imax;
+	if(jBot > br.jmax)
+		jBot = br.jmax;
+
+	// top left
+	setDepthOrAvg(iTopLeft, jTopLeft, avgDepth);
+
+	// top right
+	setDepthOrAvg(iRight, jTopLeft, avgDepth);
+
+	// bottom right
+	setDepthOrAvg(iRight, jBot, avgDepth);
+
+	// bottom left
+	setDepthOrAvg(iTopLeft, jBot, avgDepth);
+}
+
+
+void RenderView::setDepthOrAvg(int i, int j, uint16_t depth) {
+	if(grid_depth[j*640+i] == USHRT_MAX){
+		grid_depth[j*640+i] = depth;
+	}
+	else {
+		grid_depth[j*640+i] = (uint16_t)(( (int)(grid_depth[j*640+i]) + (int)depth ) / 2);	
+	}
+}
+
+
+

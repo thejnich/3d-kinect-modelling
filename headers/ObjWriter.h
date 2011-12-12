@@ -6,22 +6,18 @@
 #include <iostream>
 #include <fstream>
 #include <QtOpenGL>
+#include "Primitives.h"
 
 using namespace std;
 
-#define OUT_PATH "./out.ply"
-
-struct vertex {
-	float x;
-	float y;
-	float z;
-};
+#define PLY_PATH "./out.ply"
+#define OBJ_PATH "./out.obj"
 
 class ObjWriter {
 
 public:
-	static bool exportAsObj(std::vector<uint16_t>, std::vector<int>, int selectedObj, int frontCutoff, int rearCutoff); 
-
+	static bool exportAsPly(std::vector<uint16_t>, std::vector<int>, int selectedObj, int frontCutoff, int rearCutoff); 
+	static bool exportAsObj(std::vector<vertex> vertices, std::vector<tri_face> faces);
 private:
 };
 
