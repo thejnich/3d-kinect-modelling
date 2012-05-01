@@ -27,6 +27,8 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	exportPly_button = new QPushButton("Export .ply");
 	connect(exportPly_button, SIGNAL(clicked()), renderView, SLOT(exportPly()));
 
+	exportXyz_button = new QPushButton("Export .xyz");
+	connect(exportXyz_button, SIGNAL(clicked()), renderView, SLOT(exportXyz()));
 
 	/* front and rear depth buffer cutoffs */
 	QSlider *rearCutoffPlane = createCutoffSlider();
@@ -38,6 +40,7 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	controlLayout->addWidget(pause_button);
 	controlLayout->addWidget(exportPly_button);
 	controlLayout->addWidget(exportObj_button);
+	controlLayout->addWidget(exportXyz_button);
 	controlLayout->addWidget(new QLabel(tr("Rear Cutoff Plane")));
 	controlLayout->addWidget(rearCutoffPlane);
 	controlLayout->addWidget(new QLabel(tr("Front Cutoff Plane")));

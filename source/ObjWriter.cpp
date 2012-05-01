@@ -1,5 +1,46 @@
 #include "ObjWriter.h"
 
+bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
+	
+	if(selectedObj <= 0)
+		return false;
+
+	ofstream xyzFile(XYZ_PATH);
+	if(!xyzFile.is_open()) {
+		printf("Error opening output file at %s\n", XYZ_PATH);
+		return false;
+	}
+
+	vector<vertex> vertices;
+	
+	float xWorld = -1.0f, yWorld = 1.0f, zWorld;
+
+	for (int i = 0; i < 640 * 480; i++) {
+		if( (depth[i] > frontCutoff) && (depth[i] < rearCutoff) && (objects[i] == selectedObj)) {
+			zWorld = (float)depth[i]/100.0f;
+			vertex v = {xWorld, yWorld, zWorld};
+			vertices.push_back(v);
+		}
+
+		if (i % 640 == 0) {
+			yWorld -= 1.f / 320.f;
+			xWorld = -1.f;
+		} else {
+			xWorld += 1.f / 240.f;
+		}
+	}
+
+	vertex p;
+	for (int i = 0; i < (int)vertices.size(); ++i) {
+		p = vertices[i];
+		xyzFile << fixed << p.x << " " << fixed << p.y << " " << fixed << p.z << "\n"; 
+	}
+
+	xyzFile.close();
+	printf("done\n");
+	return true;
+}
+
 bool ObjWriter::exportAsPly(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
 
 	if(selectedObj <= 0 )

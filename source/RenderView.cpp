@@ -483,6 +483,16 @@ void RenderView::exportPly()
 
 }
 
+void RenderView::exportXyz()
+{
+	/* ensure no data capture happens when trying to export */
+	emit pausePlease();
+	if(!ObjWriter::exportAsXyz(depth, objects, selectedObject, frontCutoff, rearCutoff)) {
+		QMessageBox::warning(this, "Export error", "Export failed");
+		return;
+	}
+}
+
 void RenderView::ctrlDown() {
 	if(!ctrlPressed) {
 		ctrlPressed = true;

@@ -53,6 +53,7 @@ public slots:
 	void pause(bool);
 	void exportObj();
 	void exportPly();
+	void exportXyz();
 	void setRearCutoff(int);
 	void setFrontCutoff(int);
 	void ctrlDown();
