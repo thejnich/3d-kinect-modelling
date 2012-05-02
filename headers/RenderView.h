@@ -54,6 +54,7 @@ public slots:
 	void exportObj();
 	void exportPly();
 	void exportXyz();
+	void exportPcd();
 	void setRearCutoff(int);
 	void setFrontCutoff(int);
 	void ctrlDown();

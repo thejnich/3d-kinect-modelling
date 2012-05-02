@@ -39,6 +39,7 @@ private:
 	QPushButton *exportObj_button;
 	QPushButton *exportPly_button;
 	QPushButton *exportXyz_button;
+	QPushButton *exportPcd_button;
 
 protected:
 	void keyPressEvent(QKeyEvent *event);

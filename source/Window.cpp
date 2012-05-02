@@ -30,6 +30,9 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	exportXyz_button = new QPushButton("Export .xyz");
 	connect(exportXyz_button, SIGNAL(clicked()), renderView, SLOT(exportXyz()));
 
+	exportPcd_button = new QPushButton("Export .pcd");
+	connect(exportPcd_button, SIGNAL(clicked()), renderView, SLOT(exportPcd()));
+
 	/* front and rear depth buffer cutoffs */
 	QSlider *rearCutoffPlane = createCutoffSlider();
 	connect(rearCutoffPlane, SIGNAL(valueChanged(int)), renderView, SLOT(setRearCutoff(int)));
@@ -38,9 +41,10 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	connect(frontCutoffPlane, SIGNAL(valueChanged(int)), renderView, SLOT(setFrontCutoff(int)));
 
 	controlLayout->addWidget(pause_button);
-	controlLayout->addWidget(exportPly_button);
 	controlLayout->addWidget(exportObj_button);
+	controlLayout->addWidget(exportPly_button);
 	controlLayout->addWidget(exportXyz_button);
+	controlLayout->addWidget(exportPcd_button);
 	controlLayout->addWidget(new QLabel(tr("Rear Cutoff Plane")));
 	controlLayout->addWidget(rearCutoffPlane);
 	controlLayout->addWidget(new QLabel(tr("Front Cutoff Plane")));

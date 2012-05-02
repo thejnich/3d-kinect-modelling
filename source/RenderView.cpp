@@ -493,6 +493,16 @@ void RenderView::exportXyz()
 	}
 }
 
+void RenderView::exportPcd()
+{
+	/* ensure no data capture happens when trying to export */
+	emit pausePlease();
+	if(!ObjWriter::exportAsPcd(depth, objects, selectedObject, frontCutoff, rearCutoff)) {
+		QMessageBox::warning(this, "Export error", "Export failed");
+		return;
+	}
+}
+
 void RenderView::ctrlDown() {
 	if(!ctrlPressed) {
 		ctrlPressed = true;

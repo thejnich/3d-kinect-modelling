@@ -40,6 +40,33 @@ void ObjWriter::createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t>
 
 }
 
+void ObjWriter::writePlyHeader(ofstream *file, int numVertices) {
+	*file << "ply\n";
+	*file << "format ascii 1.0\n";
+	file->precision(3);
+	
+	*file << "element vertex " << numVertices << "\n";
+	*file << "property float x\n";
+	*file << "property float y\n";
+	*file << "property float z\n";
+	*file << "end_header\n";
+}
+
+void ObjWriter::writePcdHeader(ofstream *file, int numVertices) {
+	*file << "# .PCD v.7 - Point Cloud Data file format\n";
+	*file << "VERSION .7\n";
+	*file << "FIELDS x y z\n";
+	*file << "SIZE 4 4 4\n";
+	*file << "TYPE F F F\n";
+	*file << "COUNT 1 1 1\n";
+	file->precision(3);
+	*file << "WIDTH " << numVertices << "\n";
+	*file << "HEIGHT 1\n";
+	*file << "VIEWPOINT 0 0 0 1 0 0 0\n";
+	*file << "POINTS " << numVertices << "\n";
+	*file << "DATA ascii\n";
+}
+
 bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
 	
 	if(selectedObj <= 0)
@@ -61,6 +88,28 @@ bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int sel
 	return true;
 }
 
+bool ObjWriter::exportAsPcd(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
+	if(selectedObj <= 0)
+		return false;
+
+	ofstream pcdFile(PCD_PATH);
+	if(!pcdFile.is_open()) {
+		printf("Error openint output file at %s\n", PCD_PATH);
+		return false;
+	}
+
+	vector<vertex> vertices;
+	createPointsFromDepth(&vertices, depth, objects, selectedObj, frontCutoff, rearCutoff);
+
+	writePcdHeader(&pcdFile, vertices.size());
+
+	if(!writePointsToFile(&vertices, &pcdFile))
+		return false;
+	pcdFile.close();
+	printf("done\n");
+	return true;
+}
+
 bool ObjWriter::exportAsPly(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
 
 	if(selectedObj <= 0 )
@@ -72,20 +121,10 @@ bool ObjWriter::exportAsPly(vector<uint16_t> depth, vector<int> objects, int sel
 		return false;
 	}
 
-
-	plyFile << "ply\n";
-	plyFile << "format ascii 1.0\n";
-	plyFile.precision(3);
-	
 	vector<vertex> vertices;
 	createPointsFromDepth(&vertices, depth, objects, selectedObj, frontCutoff, rearCutoff);	
 
-
-	plyFile << "element vertex " << vertices.size() << "\n";
-	plyFile << "property float x\n";
-	plyFile << "property float y\n";
-	plyFile << "property float z\n";
-	plyFile << "end_header\n";
+	writePlyHeader(&plyFile, vertices.size());
 
 	if(!writePointsToFile(&vertices, &plyFile))
 		return false;
