@@ -1,5 +1,45 @@
 #include "ObjWriter.h"
 
+bool ObjWriter::writePointsToFile(vector<vertex> *vertices, ofstream* file) {
+
+	if(!file->is_open()){
+		printf("error writing data to file\n");
+		return false;
+	}
+
+	vertex p;
+	for (int i = 0; i < (int)vertices->size(); ++i) {
+		p = (*vertices)[i];
+		*file << fixed << p.x << " " << fixed << p.y << " " << fixed << p.z << "\n"; 
+	}
+	return true;
+}
+
+/*
+	add points(xyz) to vertices, based on depth map and selected object provided
+*/
+void ObjWriter::createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
+		
+	float xWorld = -1.0f, yWorld = 1.0f, zWorld;
+
+	for (int i = 0; i < 640 * 480; i++) {
+		if( (depth[i] > frontCutoff) && (depth[i] < rearCutoff) && (objects[i] == selectedObj)) {
+			// multiply by -1 because depth is oposite in these file formats compared with rendering in openGL
+			zWorld = -1.f*(float)depth[i]/100.0f;
+			vertex v = {xWorld, yWorld, zWorld};
+			vertices->push_back(v);
+		}
+
+		if (i % 640 == 0) {
+			yWorld -= 1.f / 320.f;
+			xWorld = -1.f;
+		} else {
+			xWorld += 1.f / 240.f;
+		}
+	}
+
+}
+
 bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
 	
 	if(selectedObj <= 0)
@@ -12,30 +52,10 @@ bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int sel
 	}
 
 	vector<vertex> vertices;
-	
-	float xWorld = -1.0f, yWorld = 1.0f, zWorld;
+	createPointsFromDepth(&vertices, depth, objects, selectedObj, frontCutoff, rearCutoff);
 
-	for (int i = 0; i < 640 * 480; i++) {
-		if( (depth[i] > frontCutoff) && (depth[i] < rearCutoff) && (objects[i] == selectedObj)) {
-			zWorld = (float)depth[i]/100.0f;
-			vertex v = {xWorld, yWorld, zWorld};
-			vertices.push_back(v);
-		}
-
-		if (i % 640 == 0) {
-			yWorld -= 1.f / 320.f;
-			xWorld = -1.f;
-		} else {
-			xWorld += 1.f / 240.f;
-		}
-	}
-
-	vertex p;
-	for (int i = 0; i < (int)vertices.size(); ++i) {
-		p = vertices[i];
-		xyzFile << fixed << p.x << " " << fixed << p.y << " " << fixed << p.z << "\n"; 
-	}
-
+	if(!writePointsToFile(&vertices, &xyzFile))
+		return false;
 	xyzFile.close();
 	printf("done\n");
 	return true;
@@ -52,29 +72,13 @@ bool ObjWriter::exportAsPly(vector<uint16_t> depth, vector<int> objects, int sel
 		return false;
 	}
 
-	vector<vertex> vertices;
 
 	plyFile << "ply\n";
 	plyFile << "format ascii 1.0\n";
 	plyFile.precision(3);
 	
-	float xWorld = -1.0f, yWorld = 1.0f, zWorld;
-
-	printf("fc: %d\nrc: %d\n", frontCutoff, rearCutoff);
-	for (int i = 0; i < 640 * 480; i++) {
-		if( (depth[i] > frontCutoff) && (depth[i] < rearCutoff) && (objects[i] == selectedObj)) {
-			zWorld = (float)depth[i]/100.0f;
-			vertex v = {xWorld, yWorld, zWorld};
-			vertices.push_back(v);
-		}
-
-		if (i % 640 == 0) {
-			yWorld -= 1.f / 320.f;
-			xWorld = -1.f;
-		} else {
-			xWorld += 1.f / 240.f;
-		}
-	}
+	vector<vertex> vertices;
+	createPointsFromDepth(&vertices, depth, objects, selectedObj, frontCutoff, rearCutoff);	
 
 
 	plyFile << "element vertex " << vertices.size() << "\n";
@@ -83,12 +87,8 @@ bool ObjWriter::exportAsPly(vector<uint16_t> depth, vector<int> objects, int sel
 	plyFile << "property float z\n";
 	plyFile << "end_header\n";
 
-	vertex p;
-	for (int i = 0; i < (int)vertices.size(); ++i) {
-		p = vertices[i];
-		plyFile << fixed << p.x << " " << fixed << p.y << " " << fixed << p.z << "\n"; 
-	}
-
+	if(!writePointsToFile(&vertices, &plyFile))
+		return false;
 	plyFile.close();
 	printf("done\n");
 	return true;

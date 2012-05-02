@@ -22,6 +22,8 @@ public:
 	static bool exportAsXyz(std::vector<uint16_t>, std::vector<int>, int selectedObj, int frontCutoff, int rearCutoff); 
 
 private:
+	static bool writePointsToFile(std::vector<vertex> *vertices, ofstream *file); 
+	static void createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff); 
 };
 
 #endif /* _OBJ_WRITER_H */
