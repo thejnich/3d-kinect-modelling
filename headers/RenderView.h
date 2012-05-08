@@ -10,8 +10,6 @@
 #ifndef _RENDER_VIEW_H
 #define _RENDER_VIEW_H
 
-#define REFRESH_RATE 1000/30
-
 #include <QtOpenGL>
 #include "ObjWriter.h"
 #include "MyFreenectDevice.h"
@@ -36,6 +34,14 @@ class RenderView : public QGLWidget {
 	Q_OBJECT
 
 public:
+	// constants
+	const static float REFRESH_RATE = 1000/30;
+	const static int WIDGET_WIDTH = 1280;		// width in pixels of widget
+	const static int WIDGET_HEIGHT = 640;		// height in pixels of widget
+	const static int RES_WIDTH = 640;				// width in pixels of rgb and depth camera resolution
+	const static int RES_HEIGHT = 480;			// height in pixels of rgb and depth camera resolution
+	const static int RES_PIXELS = 640*480;		// total number of pixels in rgb and depth camera resolution
+
 	RenderView();
 	~RenderView();
 	void setStatusBar(QStatusBar* status);
@@ -79,8 +85,6 @@ protected:
 	void setZoom(int);
 	void updateStatusBar(APP_STATE st);
 
-	int WIDGET_WIDTH;
-	int WIDGET_HEIGHT;
 	MyFreenectDevice* m_device;
 	freenect_video_format requested_format;
 	double freenect_angle;
