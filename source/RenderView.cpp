@@ -636,58 +636,58 @@ void RenderView::flattenObjectsBoundingArea(int object) {
 
 }
 
-	void RenderView::renderMesh() {
-		if(selectedObject <= 0)
-			return;
-		qDebug() << "attempting to render mesh...";
+void RenderView::renderMesh() {
+	if(selectedObject <= 0)
+		return;
+	qDebug() << "attempting to render mesh...";
 
-		flattenObjectsBoundingArea(selectedObject);
-		int squareDim = 10;
+	flattenObjectsBoundingArea(selectedObject);
+	int squareDim = 10;
 
-		boundRect b = objBound[selectedObject-1];
+	boundRect b = objBound[selectedObject-1];
 
-		for(int i = b.imin; b.imax-i >= squareDim; i+=squareDim) {
-			for(int j = b.jmin; b.jmax-j >= squareDim; j+=squareDim) {
-				calcAvgOfSquare(i,j,squareDim,squareDim,b);
-			}
-		}
-
-		// fill faceList and vertexList
-		uint8_t min = findMinDepthOfObject(selectedObject);
-		uint8_t max = findMaxDepthOfObject(selectedObject);
-		// add all vertices
-		vertexList.clear();
-		faceList.clear();
+	for(int i = b.imin; b.imax-i >= squareDim; i+=squareDim) {
 		for(int j = b.jmin; b.jmax-j >= squareDim; j+=squareDim) {
-			for(int i = b.imin; b.imax-i >= squareDim; i+=squareDim) {
-				vertex v = {xToWorldCoord(i), yToWorldCoord(j), (float)grid_depth[j*RES_WIDTH+i]/100.0f};
-				vertexList.push_back(v);
-			}
-			// last col
-			//vertex v = {xToWorldCoord(b.imax), yToWorldCoord(j), (float)grid_depth[j*640+b.imax]/100.0f};
-			//vertexList.push_back(v);
+			calcAvgOfSquare(i,j,squareDim,squareDim,b);
 		}
-
-		// last row
-		//for(int i = b.imin, j = b.jmax; i < b.imax-squareDim; i+=squareDim) {
-		//	vertex v = {xToWorldCoord(i), yToWorldCoord(j), (float)grid_depth[j*640+i]/100.0f};
-		//	vertexList.push_back(v);
-		//}
-		// bottom right vertex
-		//vertex v = {xToWorldCoord(b.imax), yToWorldCoord(b.jmax), (float)grid_depth[b.jmax*640+b.imax]/100.0f};
-		//vertexList.push_back(v);
-
-		int vertPerRow = (b.imax - b.imin)/squareDim;
-		for(int i = 0; i < (int)vertexList.size() - vertPerRow; ++i) {
-			tri_face f = {i, i+vertPerRow, i+1};
-			faceList.push_back(f);
-			tri_face f1 = {i+vertPerRow, i+vertPerRow+1, i+1};
-			faceList.push_back(f1);
-		}
-		updateStatusBar(RENDERED);	
-		qDebug() << "finished mesh render!";
-		qDebug() << "numFaces: " << faceList.size();
 	}
+
+	// fill faceList and vertexList
+	uint8_t min = findMinDepthOfObject(selectedObject);
+	uint8_t max = findMaxDepthOfObject(selectedObject);
+	// add all vertices
+	vertexList.clear();
+	faceList.clear();
+	for(int j = b.jmin; b.jmax-j >= squareDim; j+=squareDim) {
+		for(int i = b.imin; b.imax-i >= squareDim; i+=squareDim) {
+			vertex v = {xToWorldCoord(i), yToWorldCoord(j), (float)grid_depth[j*RES_WIDTH+i]/100.0f};
+			vertexList.push_back(v);
+		}
+		// last col
+		//vertex v = {xToWorldCoord(b.imax), yToWorldCoord(j), (float)grid_depth[j*640+b.imax]/100.0f};
+		//vertexList.push_back(v);
+	}
+
+	// last row
+	//for(int i = b.imin, j = b.jmax; i < b.imax-squareDim; i+=squareDim) {
+	//	vertex v = {xToWorldCoord(i), yToWorldCoord(j), (float)grid_depth[j*640+i]/100.0f};
+	//	vertexList.push_back(v);
+	//}
+	// bottom right vertex
+	//vertex v = {xToWorldCoord(b.imax), yToWorldCoord(b.jmax), (float)grid_depth[b.jmax*640+b.imax]/100.0f};
+	//vertexList.push_back(v);
+
+	int vertPerRow = (b.imax - b.imin)/squareDim;
+	for(int i = 0; i < (int)vertexList.size() - vertPerRow; ++i) {
+		tri_face f = {i, i+vertPerRow, i+1};
+		faceList.push_back(f);
+		tri_face f1 = {i+vertPerRow, i+vertPerRow+1, i+1};
+		faceList.push_back(f1);
+	}
+	updateStatusBar(RENDERED);	
+	qDebug() << "finished mesh render!";
+	qDebug() << "numFaces: " << faceList.size();
+}
 
 // use w and h in case we end up using rectangles
 // i,j coords of top left corner
