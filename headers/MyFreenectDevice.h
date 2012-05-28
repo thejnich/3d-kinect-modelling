@@ -17,7 +17,7 @@ public:
 			m_gamma[i] = v*6*256;
 		}
 	}
-	//~MyFreenectDevice(){}
+
 	// Do not call directly even in child
 	void VideoCallback(void* _rgb, uint32_t timestamp) {
 		video_timestamp = timestamp;
@@ -31,11 +31,17 @@ public:
 		Mutex::ScopedLock lock(m_depth_mutex);
 		depth_timestamp = timestamp;
 		uint16_t* depth = static_cast<uint16_t*>(_depth);
-//		std::copy(depth, depth+640*480, m_buffer_depth.begin());
 
 		for( unsigned int i = 0 ; i < 640*480 ; i++) {
+			/*
+			 * calculate depth from disparity value. From http://vvvv.org/forum/the-kinect-thread
+			 */
 			m_buffer_depth[i] = tan((float)depth[i]/1024.0f + 0.5f)*33.825f + 5.7f;
-			
+	
+			/*
+			 * fancy bit shifting to generate the colored image mapping different
+			 * depths to different colors
+			 */
 			int pval = m_gamma[depth[i]];
 			int lb = pval & 0xff;
 			switch (pval>>8) {
@@ -79,6 +85,13 @@ public:
 		m_new_depth_frame = true;
 		m_new_depth_rgb_frame = true;
 	}
+
+	/*
+	 * Puts the content of the rbg video buffer into
+	 * buffer. 
+	 * Returns false if there is no new frame,
+	 * true if new frame is successfuly swapped in.
+	 */
 	bool getRGB(std::vector<uint8_t> &buffer) {
 		Mutex::ScopedLock lock(m_rgb_mutex);
 		if (!m_new_rgb_frame)
@@ -87,7 +100,15 @@ public:
 		m_new_rgb_frame = false;
 		return true;
 	}
-	
+
+	/*
+	 * Puts the current frames depth values into buffer.
+	 * This is the real world depth value (in cm), which is calculated
+	 * each frame in DepthCallback. This is not the same as the raw non-linear
+	 * disparity values streamed from the kinect. These disparity values are
+	 * used to calculate these depth values.
+	 * Returns false if no new frame, true if swap success.
+	 */
 	bool getDepth(std::vector<uint16_t> &buffer) {
 		Mutex::ScopedLock lock(m_depth_mutex);
 		if (!m_new_depth_frame)
@@ -96,7 +117,12 @@ public:
 		m_new_depth_frame = false;
 		return true;
 	}
-	
+
+	/*
+	 * Puts the disparity data, which has been modified so various depths are
+	 * represented by different colors, into buffer.
+	 * Returns false if no new data, true if successful swap in.
+	 */
 	bool getDepthRGB(std::vector<uint8_t> &buffer) {
 		Mutex::ScopedLock lock(m_depth_mutex);
 		if (!m_new_depth_rgb_frame)
