@@ -54,6 +54,9 @@ public:
 	void renderMesh();
 	void toggleTexDisplay();
 	void toggleColorDisplay();
+	void increaseTilt();
+	void decreaseTilt();
+	void resetTilt();
 
 public slots:
 	void pause(bool);
@@ -101,6 +104,7 @@ private:
 	int zoom;
 	int rearCutoff;
 	int frontCutoff;
+	double tiltAngle;
 	QTimer *timer;
 
 	std::vector<uint16_t> depth;

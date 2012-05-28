@@ -16,11 +16,14 @@
 RenderView::RenderView()
 {
 	zoom = 3 * 120;
+	tiltAngle = 0;
 
 	m_device = &freenect.createDevice<MyFreenectDevice>(0);
 
 	m_device->startVideo();
 	m_device->startDepth();
+	m_device->setLed(LED_YELLOW);
+	m_device->setTiltDegrees(tiltAngle);
 
 	requested_format = FREENECT_VIDEO_RGB;
 	m_device->setVideoFormat(requested_format);
@@ -730,5 +733,21 @@ void RenderView::setDepthOrAvg(int i, int j, uint16_t depth) {
 	}
 }
 
+void RenderView::increaseTilt() {
+	tiltAngle++;
+	if(tiltAngle > 30)
+		tiltAngle = 30;
+	m_device->setTiltDegrees(tiltAngle);
+}
 
+void RenderView::decreaseTilt() {
+	tiltAngle--;
+	if(tiltAngle < -30)
+		tiltAngle = -30;
+	m_device->setTiltDegrees(tiltAngle);
+}
 
+void RenderView::resetTilt() {
+	tiltAngle = 0;
+	m_device->setTiltDegrees(tiltAngle);
+}

@@ -93,6 +93,12 @@ void Window::keyPressEvent(QKeyEvent *e)
 		renderView->toggleTexDisplay();
 	else if (e->key() == Qt::Key_M)
 		renderView->toggleColorDisplay();
+	else if (e->key() == Qt::Key_W)
+		renderView->increaseTilt();
+	else if (e->key() == Qt::Key_X)
+		renderView->decreaseTilt();
+	else if (e->key() == Qt::Key_S)
+		renderView->resetTilt();
 	else
 		QWidget::keyPressEvent(e);
 }
