@@ -146,11 +146,6 @@ void RenderView::paintGL()
 	m_device->getRGB(rgb);
 	m_device->getDepthRGB(depth_rgb);
 
-	//	std::vector<uint8_t> markers(640 * 480, 0);
-	//	for (int i = 0; i < 500; ++i)
-	//		markers[i * i] = 255;
-	//detector.detect(depth_rgb);
-
 	glPushMatrix();
 	glRotatef(xRot / 16.0, 1.0, 0.0, 0.0);
 	glRotatef(yRot / 16.0, 0.0, 1.0, 0.0);
@@ -582,11 +577,6 @@ void RenderView::worldCoordToPixelCoord(float x, float y, int &i, int &j)
 
 uint16_t RenderView::findMaxDepthOfObject(int object) {
 	uint16_t maxDepth = 0;
-	/*
-		for(int i = 0; i < (int)objects.size(); ++i) {
-		if((objects[i] == object) && (depth[i]>maxDepth))
-		maxDepth = depth[i];
-		}*/
 	boundRect b = objBound[object-1];
 	for(int i = b.imin; i <= b.imax; ++i) {
 		for(int j = b.jmin; j <= b.jmax; ++j) {
