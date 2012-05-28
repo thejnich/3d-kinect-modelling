@@ -1,0 +1,10 @@
+
+# /
+/captures
+/run
+/run_fake
+/3d-kinect-modelling.app
+/Makefile
+/build
+/out.*
+/stop*
