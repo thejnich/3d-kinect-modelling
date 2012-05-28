@@ -9,12 +9,17 @@
 class MyFreenectDevice : public Freenect::FreenectDevice {
 public:
 	MyFreenectDevice(freenect_context *_ctx, int _index)
-	: Freenect::FreenectDevice(_ctx, _index), m_buffer_depth_rgb(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes),m_buffer_depth(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes),m_buffer_video(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes), m_gamma(2048), m_new_rgb_frame(false), m_new_depth_frame(false), m_new_depth_rgb_frame(false)
+	: Freenect::FreenectDevice(_ctx, _index), m_buffer_depth_rgb(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes),m_buffer_depth(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes),m_buffer_video(freenect_find_video_mode(FREENECT_RESOLUTION_MEDIUM, FREENECT_VIDEO_RGB).bytes), m_gamma(2048), m_gamma_disp(2048), m_new_rgb_frame(false), m_new_depth_frame(false), m_new_depth_rgb_frame(false)
 	{
+		// initialize lookup tables
 		for( unsigned int i = 0 ; i < 2048 ; i++) {
+			// original code from libfreenect
 			float v = i/2048.0;
 			v = std::pow(v, 3)* 6;
 			m_gamma[i] = v*6*256;
+
+			// From http://vvvv.org/forum/the-kinect-thread, disparity to depth(cm)
+			m_gamma_disp[i] = tan((float)i/1024.0f + 0.5f)*33.825f + 5.7f;
 		}
 	}
 
@@ -34,9 +39,9 @@ public:
 
 		for( unsigned int i = 0 ; i < 640*480 ; i++) {
 			/*
-			 * calculate depth from disparity value. From http://vvvv.org/forum/the-kinect-thread
+			 * get depth from disparity value using precomputed lookup table. 
 			 */
-			m_buffer_depth[i] = tan((float)depth[i]/1024.0f + 0.5f)*33.825f + 5.7f;
+			m_buffer_depth[i] = m_gamma_disp[depth[i]];
 	
 			/*
 			 * fancy bit shifting to generate the colored image mapping different
@@ -137,6 +142,7 @@ private:
 	std::vector<uint16_t> m_buffer_depth;
 	std::vector<uint8_t> m_buffer_video;
 	std::vector<uint16_t> m_gamma;
+	std::vector<uint16_t> m_gamma_disp;
 	Mutex m_rgb_mutex;
 	Mutex m_depth_mutex;
 	bool m_new_rgb_frame;
