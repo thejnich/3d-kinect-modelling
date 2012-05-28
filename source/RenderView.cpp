@@ -168,7 +168,7 @@ void RenderView::paintGL()
 		GLfloat ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
-		for(int i = 0; i < faceList.size(); ++i) {
+		for(int i = 0; i < (int)faceList.size(); ++i) {
 
 			//glBegin(GL_LINE_LOOP);
 			glBegin(GL_TRIANGLES);
@@ -653,8 +653,8 @@ void RenderView::renderMesh() {
 	}
 
 	// fill faceList and vertexList
-	uint8_t min = findMinDepthOfObject(selectedObject);
-	uint8_t max = findMaxDepthOfObject(selectedObject);
+	//uint8_t min = findMinDepthOfObject(selectedObject);
+	//uint8_t max = findMaxDepthOfObject(selectedObject);
 	// add all vertices
 	vertexList.clear();
 	faceList.clear();
