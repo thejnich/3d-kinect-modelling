@@ -29,6 +29,7 @@ RenderView::RenderView()
 	m_device->setVideoFormat(requested_format);
 
 	depth = std::vector<uint16_t>(RES_PIXELS);
+	depth_cache = std::vector< std::vector<uint16_t> >();
 	rgb = std::vector<uint8_t>(RES_PIXELS*4);
 	depth_rgb = std::vector<uint8_t>(RES_PIXELS*3);
 	xRot = -30 * 16;
@@ -145,7 +146,8 @@ void RenderView::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	m_device->getDepth(depth);
+	//m_device->getDepth(depth);
+	getDepthAndUpdateCache();
 	m_device->getRGB(rgb);
 	m_device->getDepthRGB(depth_rgb);
 
@@ -174,6 +176,19 @@ void RenderView::paintGL()
 	}
 
 	glFlush();
+}
+
+void RenderView::getDepthAndUpdateCache() {
+	std::vector<uint16_t> prev;
+	prev.assign(depth.begin(), depth.end());
+	if(m_device->getDepth(depth)) {
+		if( (int)depth_cache.size() < CACHE_SIZE ) 
+			depth_cache.push_back(prev);
+		else {
+			depth_cache.erase(depth_cache.begin());
+			depth_cache.push_back(prev);
+		}
+	}
 }
 
 void RenderView::renderRGB_DepthColor_Textures() {
@@ -763,4 +778,26 @@ void RenderView::decreaseTilt() {
 void RenderView::resetTilt() {
 	tiltAngle = 0;
 	m_device->setTiltDegrees(tiltAngle);
+}
+
+void RenderView::dump() {
+	emit pausePlease();
+	float x = -1., y = 1.;
+	for (int i = 0; i < RES_PIXELS; i++) {
+		if(depth[i] > frontCutoff && depth[i] < rearCutoff ) {
+			printf("%.2f, %.2f", x,y);
+			for(int j = 0; j<(int)depth_cache.size(); j++) {	
+				printf(", %.5f", (float)depth_cache[j][i]);
+			}
+			printf("\n");
+		}
+
+		if (i % RES_WIDTH == 0) {
+			y -= 1.f / (RES_WIDTH/2.f);
+			x = -1.f;
+		} else {
+			x += 1.f / (RES_HEIGHT/2.0f);
+		}
+	}
+	printf("done\n");
 }

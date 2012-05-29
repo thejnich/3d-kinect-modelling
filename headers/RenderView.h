@@ -41,6 +41,7 @@ public:
 	const static int RES_WIDTH = 640;				// width in pixels of rgb and depth camera resolution
 	const static int RES_HEIGHT = 480;			// height in pixels of rgb and depth camera resolution
 	const static int RES_PIXELS = 640*480;		// total number of pixels in rgb and depth camera resolution
+	const static int CACHE_SIZE = 10;
 
 	RenderView();
 	~RenderView();
@@ -68,6 +69,7 @@ public slots:
 	void setFrontCutoff(int);
 	void ctrlDown();
 	void ctrlUp();
+	void dump();
 
 signals:
 	void pausePlease();
@@ -108,6 +110,7 @@ private:
 	QTimer *timer;
 
 	std::vector<uint16_t> depth;
+	std::vector< std::vector<uint16_t> > depth_cache;
 	std::vector<uint8_t> rgb;
 	std::vector<uint8_t> depth_rgb;
 	uint8_t saveColor[3];
@@ -140,6 +143,8 @@ private:
 	void renderSurface();
 	void renderPointCloud();
 	void renderRGB_DepthColor_Textures();
+
+	void getDepthAndUpdateCache();
 
 	float xWindowBound;
 
