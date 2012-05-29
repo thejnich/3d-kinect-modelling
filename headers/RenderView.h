@@ -137,6 +137,9 @@ private:
 	void calcAvgOfSquare(int iTopLeft, int jTopLeft, int h, int w, boundRect br);
 	void setDepthOrAvg(int i, int j, uint16_t depth);
 
+	void renderSurface();
+	void renderPointCloud();
+	void renderRGB_DepthColor_Textures();
 
 	float xWindowBound;
 

@@ -155,118 +155,130 @@ void RenderView::paintGL()
 	glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
 	glTranslatef(0.0f, 0.0f, -(float)zoom / 120.0f);
 
+	/*
+	 * Render the generated mesh if it exists, or the point cloud
+	 */
 	if(faceList.size()>0) {
-
-		glEnable(GL_LIGHTING);
-		GLfloat specular[] = {1.0f, 2.0f, 1.0f, 1.0f};
-		GLfloat specularpos[] = {0.0f, 1.0f, 1.0f, 1.0f};
-		glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
-		glLightfv(GL_LIGHT0, GL_POSITION, specularpos);
-		glEnable(GL_LIGHT0);
-		GLfloat ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
-
-		for(int i = 0; i < (int)faceList.size(); ++i) {
-
-			//glBegin(GL_LINE_LOOP);
-			glBegin(GL_TRIANGLES);
-			glVertex3f(vertexList[faceList[i].v1].x, vertexList[faceList[i].v1].y, vertexList[faceList[i].v1].z);
-			glVertex3f(vertexList[faceList[i].v2].x, vertexList[faceList[i].v2].y, vertexList[faceList[i].v2].z);
-			glVertex3f(vertexList[faceList[i].v3].x, vertexList[faceList[i].v3].y, vertexList[faceList[i].v3].z);
-
-			float v1x = vertexList[faceList[i].v2].x - vertexList[faceList[i].v1].x;
-			float v1y = vertexList[faceList[i].v2].y - vertexList[faceList[i].v1].y;
-			float v1z = vertexList[faceList[i].v2].z - vertexList[faceList[i].v1].z;
-			float v2x = vertexList[faceList[i].v3].x - vertexList[faceList[i].v1].x;
-			float v2y = vertexList[faceList[i].v3].y - vertexList[faceList[i].v1].y;
-			float v2z = vertexList[faceList[i].v3].z - vertexList[faceList[i].v1].z;
-
-			float nx = v1y * v2z - v1z * v2y;
-			float ny = v1z * v2x - v1x * v2z;
-			float nz = v1x * v2y - v1y * v2x;
-
-			glNormal3f(nx,ny,nz);
-
-			glEnd();
-		}
-
-		glDisable(GL_LIGHTING);
-		glDisable(GL_LIGHT0);
-
+		renderSurface();
 	}
 	else {
-		glPointSize(2.);
-		glBegin(GL_POINTS);
-		float x = -1., y = 1.;
-		for (int i = 0; i < RES_PIXELS; i++) {
-
-			if( (depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject > 0 && objects[i] == selectedObject)) ||
-					(depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject == 0)) ) {
-				glVertex3f(x, y, (float)depth[i] / 100.0f);
-				if (displayColor)
-				{
-					glColor3uiv((GLuint*)&rgb[3 * (i+RES_WIDTH*30 - 7)]);
-				}
-				else
-				{
-					glColor3f(1., 1., 1.);
-				}
-
-				/* linear interpolation
-					glVertex3f(x + (1.f/240.f/4.0f), y, 0.75 * (float)depth[i] / 100.0f + 0.25 * (float)depth[i+1] / 100.0f);
-					glVertex3f(x + (22.f/240.f/4.0f), y, 0.5 * (float)depth[i] / 100.0f + 0.5 * (float)depth[i+1] / 100.0f);
-					glVertex3f(x + (3.f/240.f/4.0f), y, 0.25 * (float)depth[i] / 100.0f + 0.75 * (float)depth[i+1] / 100.0f);
-				 */
-
-			}
-
-			if (i % RES_WIDTH == 0) {
-				y -= 1.f / (RES_WIDTH/2.f);
-				x = -1.f;
-			} else {
-				x += 1.f / (RES_HEIGHT/2.0f);
-			}
-		}
-		glEnd();
+		renderPointCloud();
 	}
 	glPopMatrix();
 
+	// show the rgb video stream and colored depth map as textures
 	if (displayTex)
 	{
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, gl_depth_tex);
-		glTexImage2D(GL_TEXTURE_2D, 0, 3, RES_WIDTH, RES_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, &depth_rgb[0]);
-
-		glBegin(GL_TRIANGLE_FAN);
-		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-		glTexCoord2f(0, 0); glVertex3f(0 - 2 ,1,0);
-		glTexCoord2f(1, 0); glVertex3f(xWindowBound,1,0);
-		glTexCoord2f(1, 1); glVertex3f(xWindowBound,0,0);
-		glTexCoord2f(0, 1); glVertex3f(0 - 2 ,0,0);
-		glEnd();
-
-		glBindTexture(GL_TEXTURE_2D, gl_rgb_tex);
-
-
-		if (m_device->getVideoFormat() == FREENECT_VIDEO_RGB || m_device->getVideoFormat() == FREENECT_VIDEO_YUV_RGB)
-			glTexImage2D(GL_TEXTURE_2D, 0, 3, RES_WIDTH, RES_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, &rgb[0]);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, 1, RES_WIDTH, RES_HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &rgb[0]);
-
-		glBegin(GL_TRIANGLE_FAN);
-		glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
-		glTexCoord2f(0, 0); glVertex3f(0 - 2, 0,0);
-		glTexCoord2f(1, 0); glVertex3f(xWindowBound, 0,0);
-		glTexCoord2f(1, 1); glVertex3f(xWindowBound,-1,0);
-		glTexCoord2f(0, 1); glVertex3f(0 - 2 ,-1,0);
-		glEnd();
-
-		glDisable(GL_TEXTURE_2D);
+		renderRGB_DepthColor_Textures();
+		renderMarkerList();
 	}
 
-	renderMarkerList();
-
 	glFlush();
+}
+
+void RenderView::renderRGB_DepthColor_Textures() {
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, gl_depth_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, RES_WIDTH, RES_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, &depth_rgb[0]);
+
+	glBegin(GL_TRIANGLE_FAN);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glTexCoord2f(0, 0); glVertex3f(0 - 2 ,1,0);
+	glTexCoord2f(1, 0); glVertex3f(xWindowBound,1,0);
+	glTexCoord2f(1, 1); glVertex3f(xWindowBound,0,0);
+	glTexCoord2f(0, 1); glVertex3f(0 - 2 ,0,0);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, gl_rgb_tex);
+
+	if (m_device->getVideoFormat() == FREENECT_VIDEO_RGB || m_device->getVideoFormat() == FREENECT_VIDEO_YUV_RGB)
+		glTexImage2D(GL_TEXTURE_2D, 0, 3, RES_WIDTH, RES_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, &rgb[0]);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, 1, RES_WIDTH, RES_HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &rgb[0]);
+
+	glBegin(GL_TRIANGLE_FAN);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glTexCoord2f(0, 0); glVertex3f(0 - 2, 0,0);
+	glTexCoord2f(1, 0); glVertex3f(xWindowBound, 0,0);
+	glTexCoord2f(1, 1); glVertex3f(xWindowBound,-1,0);
+	glTexCoord2f(0, 1); glVertex3f(0 - 2 ,-1,0);
+	glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+}
+
+void RenderView::renderSurface() {
+	glEnable(GL_LIGHTING);
+	GLfloat specular[] = {1.0f, 2.0f, 1.0f, 1.0f};
+	GLfloat specularpos[] = {0.0f, 1.0f, 1.0f, 1.0f};
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+	glLightfv(GL_LIGHT0, GL_POSITION, specularpos);
+	glEnable(GL_LIGHT0);
+	GLfloat ambient[] = {0.5f, 0.5f, 0.5f, 1.0f};
+	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+
+	for(int i = 0; i < (int)faceList.size(); ++i) {
+
+		//glBegin(GL_LINE_LOOP);
+		glBegin(GL_TRIANGLES);
+		glVertex3f(vertexList[faceList[i].v1].x, vertexList[faceList[i].v1].y, vertexList[faceList[i].v1].z);
+		glVertex3f(vertexList[faceList[i].v2].x, vertexList[faceList[i].v2].y, vertexList[faceList[i].v2].z);
+		glVertex3f(vertexList[faceList[i].v3].x, vertexList[faceList[i].v3].y, vertexList[faceList[i].v3].z);
+
+		float v1x = vertexList[faceList[i].v2].x - vertexList[faceList[i].v1].x;
+		float v1y = vertexList[faceList[i].v2].y - vertexList[faceList[i].v1].y;
+		float v1z = vertexList[faceList[i].v2].z - vertexList[faceList[i].v1].z;
+		float v2x = vertexList[faceList[i].v3].x - vertexList[faceList[i].v1].x;
+		float v2y = vertexList[faceList[i].v3].y - vertexList[faceList[i].v1].y;
+		float v2z = vertexList[faceList[i].v3].z - vertexList[faceList[i].v1].z;
+
+		float nx = v1y * v2z - v1z * v2y;
+		float ny = v1z * v2x - v1x * v2z;
+		float nz = v1x * v2y - v1y * v2x;
+
+		glNormal3f(nx,ny,nz);
+
+		glEnd();
+	}
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_LIGHT0);
+}
+
+void RenderView::renderPointCloud() {
+	glPointSize(2.);
+	glBegin(GL_POINTS);
+	float x = -1., y = 1.;
+	for (int i = 0; i < RES_PIXELS; i++) {
+
+		if( (depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject > 0 && objects[i] == selectedObject)) ||
+				(depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject == 0)) ) {
+			glVertex3f(x, y, (float)depth[i] / 100.0f);
+			if (displayColor)
+			{
+				glColor3uiv((GLuint*)&rgb[3 * (i+RES_WIDTH*30 - 7)]);
+			}
+			else
+			{
+				glColor3f(1., 1., 1.);
+			}
+
+			/* linear interpolation
+				glVertex3f(x + (1.f/240.f/4.0f), y, 0.75 * (float)depth[i] / 100.0f + 0.25 * (float)depth[i+1] / 100.0f);
+				glVertex3f(x + (22.f/240.f/4.0f), y, 0.5 * (float)depth[i] / 100.0f + 0.5 * (float)depth[i+1] / 100.0f);
+				glVertex3f(x + (3.f/240.f/4.0f), y, 0.25 * (float)depth[i] / 100.0f + 0.75 * (float)depth[i+1] / 100.0f);
+			 */
+		}
+
+		if (i % RES_WIDTH == 0) {
+			y -= 1.f / (RES_WIDTH/2.f);
+			x = -1.f;
+		} else {
+			x += 1.f / (RES_HEIGHT/2.0f);
+		}
+	}
+	glEnd();
+
 }
 
 /* trackball functionality */
@@ -443,6 +455,7 @@ void RenderView::setFrontCutoff(int distance_cm)
 void RenderView::pause(bool paused)
 {
 	if (paused) {
+
 		updateStatusBar(PAUSED);
 		m_device->stopDepth();
 		m_device->stopVideo();
