@@ -16,7 +16,7 @@
 RenderView::RenderView()
 {
 	zoom = 3 * 120;
-	tiltAngle = 0;
+	tiltAngle = 10;
 
 	m_device = &freenect.createDevice<MyFreenectDevice>(0);
 
