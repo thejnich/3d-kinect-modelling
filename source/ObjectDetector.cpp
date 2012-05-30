@@ -1,3 +1,8 @@
+/*
+ * Detects objects in scene based on user entered markers
+ * Based on OpenCV watershed.cpp example
+ */
+
 #include "ObjectDetector.h"
 
 ObjectDetector::ObjectDetector() :
