@@ -11,15 +11,21 @@ ObjectDetector::~ObjectDetector()
 
 void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 {
+	// create matrix from rgb data
     img0 = cv::Mat(height, width, CV_8UC3, rgb.data());
     if (img0.empty())
     {
         return;
     }
+
+	 // create a grayscale version of data for use when dulling color of wshed
     img0.copyTo(img);
     cv::cvtColor(img, markerMask, CV_BGR2GRAY);
     cv::cvtColor(markerMask, imgGray, CV_GRAY2BGR);
+
+	 // clear markerMask
     markerMask = cv::Scalar::all(0);
+//	 cout << markerMask << endl;
 }
 
 void ObjectDetector::startMarkingRegion(int x, int y)
@@ -112,6 +118,10 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<bound
 			 }
 		  }
     }
+
+	 // dull the colors a little
     wshed = wshed*0.5 + imgGray*0.5;
+
+	 // copy the data back to map, for use by caller
     std::copy(wshed.data, wshed.data + (wshed.size().width * wshed.size().height * 3), map.begin());
 }
