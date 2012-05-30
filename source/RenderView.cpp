@@ -281,11 +281,6 @@ void RenderView::renderPointCloud() {
 				glColor3f(1., 1., 1.);
 			}
 
-			/* linear interpolation
-				glVertex3f(x + (1.f/240.f/4.0f), y, 0.75 * (float)depth[i] / 100.0f + 0.25 * (float)depth[i+1] / 100.0f);
-				glVertex3f(x + (22.f/240.f/4.0f), y, 0.5 * (float)depth[i] / 100.0f + 0.5 * (float)depth[i+1] / 100.0f);
-				glVertex3f(x + (3.f/240.f/4.0f), y, 0.25 * (float)depth[i] / 100.0f + 0.75 * (float)depth[i+1] / 100.0f);
-			 */
 		}
 
 		if (i % RES_WIDTH == 0) {
