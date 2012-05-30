@@ -178,6 +178,9 @@ void RenderView::paintGL()
 	glFlush();
 }
 
+/*
+ * Cache last ten depth frames, so they can be dumped for analysis
+ */
 void RenderView::getDepthAndUpdateCache() {
 	std::vector<uint16_t> prev;
 	prev.assign(depth.begin(), depth.end());
