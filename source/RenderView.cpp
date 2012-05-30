@@ -483,6 +483,7 @@ void RenderView::pause(bool paused)
 		m_device->startVideo();
 		m_device->startDepth();
 		nobjects = selectedObject = 0;
+		clearMarkerList();
 		faceList.clear();
 		vertexList.clear();
 	}
