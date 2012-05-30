@@ -17,8 +17,8 @@ current focus. The point cloud/mesh can be exported in various formats.
 
 ##History
 This started as a class project, and is now being extended.
-Original contributors included myself, Kyle Milz (https://github.com/krwm) and Romain Clement (http://www.romainclement.com/).  
-This repo was created from an svn repo at: http://code.google.com/p/3d-kinect-modelling/
+Original contributors included myself, Kyle Milz (<https://github.com/krwm>) and Romain Clement (<http://www.romainclement.com/>).  
+This repo was created from an svn repo at: <http://code.google.com/p/3d-kinect-modelling/>
 Some of the revision history was lost for this reason, the code is still at the above site, and history can be viewed there.
 The project is moving in a different direction, so this should not be an issue.  
 
