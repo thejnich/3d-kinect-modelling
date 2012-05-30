@@ -25,7 +25,6 @@ void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 
 	 // clear markerMask
     markerMask = cv::Scalar::all(0);
-//	 cout << markerMask << endl;
 }
 
 void ObjectDetector::startMarkingRegion(int x, int y)
