@@ -5,6 +5,8 @@
 #include <vector>
 #include <opencv/cv.h>
 #include "Primitives.h"
+#include <QDebug>
+#include "opencv2/highgui/highgui.hpp"
 
 class ObjectDetector
 {

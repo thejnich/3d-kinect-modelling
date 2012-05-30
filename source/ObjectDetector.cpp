@@ -1,6 +1,4 @@
 #include "ObjectDetector.h"
-#include <QDebug>
-#include "opencv2/highgui/highgui.hpp"
 
 ObjectDetector::ObjectDetector() :
     prevPt(-1, 1)
