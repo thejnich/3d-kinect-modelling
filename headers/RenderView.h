@@ -145,6 +145,7 @@ private:
 	void renderRGB_DepthColor_Textures();
 
 	void getDepthAndUpdateCache();
+	bool mouseInsideMarkingRegion(QMouseEvent*);
 
 	float xWindowBound;
 

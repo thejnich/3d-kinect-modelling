@@ -369,7 +369,7 @@ void RenderView::wheelEvent(QWheelEvent *event)
 void RenderView::mousePressEvent(QMouseEvent *event)
 {
 	if(ctrlPressed && (nobjects == 0) && (state == PAUSED)) {
-		if(xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0)
+		if(mouseInsideMarkingRegion(event))
 		{
 			currentMarker.points.push_back(event->pos());
 			int i = 0, j = 0;
@@ -378,7 +378,7 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 		}
 	}
 	else if(ctrlPressed && (nobjects > 0) && (state == DETECTED || state == SELECTED)) {
-		if(xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0)
+		if(mouseInsideMarkingRegion(event))
 		{
 			for (int p = 0; p < RES_PIXELS; p++)
 			{
@@ -420,6 +420,10 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 		lastPos = event->pos();
 }
 
+bool RenderView::mouseInsideMarkingRegion(QMouseEvent *event) {
+	return (xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0);
+}
+
 void RenderView::mouseReleaseEvent(QMouseEvent *event)
 {
 	if (ctrlPressed && (state == PAUSED)) {
@@ -435,7 +439,7 @@ void RenderView::mouseMoveEvent(QMouseEvent *event)
 	int dy = event->y() - lastPos.y();
 
 	if (event->buttons() & Qt::LeftButton) {
-		if(ctrlPressed && xToWorldCoord(event->x()) < xWindowBound && yToWorldCoord(event->y()) > 0 && (nobjects == 0) && (state == PAUSED)) {
+		if(ctrlPressed && mouseInsideMarkingRegion(event) && (nobjects == 0) && (state == PAUSED)) {
 			currentMarker.points.push_back(event->pos());
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
