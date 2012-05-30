@@ -26,8 +26,6 @@ private:
     cv::Point prevPt;
     cv::Mat   markerMask;
     cv::Mat   img;
-    cv::Mat   img0;
-    cv::Mat   imgGray;
 };
 
 #endif // _OBJECT_DETECTOR_H

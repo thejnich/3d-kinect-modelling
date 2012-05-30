@@ -12,18 +12,16 @@ ObjectDetector::~ObjectDetector()
 void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 {
 	// create matrix from rgb data
-    img0 = cv::Mat(height, width, CV_8UC3, rgb.data());
-    if (img0.empty())
+    img = cv::Mat(height, width, CV_8UC3, rgb.data());
+    if (img.empty())
     {
         return;
     }
 
-	 // create a grayscale version of data for use when dulling color of wshed
-    img0.copyTo(img);
+	 // simple way to initialize markerMask to the correct type of matrix
     cv::cvtColor(img, markerMask, CV_BGR2GRAY);
-    cv::cvtColor(markerMask, imgGray, CV_GRAY2BGR);
 
-	 // clear markerMask
+	 // zero markerMask
     markerMask = cv::Scalar::all(0);
 }
 
@@ -40,7 +38,6 @@ void ObjectDetector::addMarkerToCurrentRegion(int x, int y)
         prevPt = pt;
     }
     cv::line( markerMask, prevPt, pt, cv::Scalar::all(255), 5, 8, 0 );
-    cv::line( img, prevPt, pt, cv::Scalar::all(255), 5, 8, 0 );
     prevPt = pt;
 }
 
@@ -79,7 +76,7 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<bound
     }
 
     /* running the watershed detection based on the image and the markers */
-    watershed(img0, markers);
+    watershed(img, markers);
 
     /* retrieve the objects */
     n = compCount;
@@ -117,9 +114,6 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<bound
 			 }
 		  }
     }
-
-	 // dull the colors a little
-    wshed = wshed*0.5 + imgGray*0.5;
 
 	 // copy the data back to map, for use by caller
     std::copy(wshed.data, wshed.data + (wshed.size().width * wshed.size().height * 3), map.begin());
