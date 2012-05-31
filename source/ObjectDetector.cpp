@@ -16,7 +16,6 @@ ObjectDetector::~ObjectDetector()
 
 void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 {
-	std::cout << "init" << std::endl;
 	// create matrix from rgb data
     img = cv::Mat(height, width, CV_8UC3, rgb.data());
     if (img.empty())
@@ -48,7 +47,6 @@ void ObjectDetector::startMarkingRegion(int x, int y)
 
 void ObjectDetector::addMarkerToCurrentRegion(int x, int y)
 {
-	std::cout << "adding" << std::endl;
     cv::Point pt(x, y);
     if( prevPt.x < 0 )
     {
@@ -95,7 +93,6 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<bound
 		objBound.push_back(b);
 	}
     cv::Mat wshed(markers.size(), CV_8UC3);
-	 printf("marker rows: %d\nmarker cols: %d\n", markers.rows, markers.cols);
 	 for(int j = 0; j < markers.rows; j++ )
 	 {
 		 for(int i = 0; i < markers.cols; i++ )
