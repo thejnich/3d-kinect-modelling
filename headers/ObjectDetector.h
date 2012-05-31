@@ -23,9 +23,11 @@ public:
     void detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map);
 
 private:
+	const static int MAX_COLOR = 10;	
     cv::Point prevPt;
     cv::Mat   markerMask;
     cv::Mat   img;
+    std::vector<cv::Vec3b> colorTab;
 };
 
 #endif // _OBJECT_DETECTOR_H

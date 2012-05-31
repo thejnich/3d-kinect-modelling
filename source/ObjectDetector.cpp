@@ -29,6 +29,16 @@ void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 
 	 // zero markerMask
     markerMask = cv::Scalar::all(0);
+
+	// generate random colors for objects found, not usually more than MAX_COLOR are found
+	for(int i = 0; i < MAX_COLOR; i++ )
+    {
+        int b = cv::theRNG().uniform(0, 255);
+        int g = cv::theRNG().uniform(0, 255);
+        int r = cv::theRNG().uniform(0, 255);
+        colorTab.push_back(cv::Vec3b((uchar)b, (uchar)g, (uchar)r));
+    }
+
 }
 
 void ObjectDetector::startMarkingRegion(int x, int y)
@@ -74,16 +84,7 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<bound
     if( compCount == 0 )
         return;
 
-    std::vector<cv::Vec3b> colorTab;
-    for(int i = 0; i < compCount; i++ )
-    {
-        int b = cv::theRNG().uniform(0, 255);
-        int g = cv::theRNG().uniform(0, 255);
-        int r = cv::theRNG().uniform(0, 255);
-        colorTab.push_back(cv::Vec3b((uchar)b, (uchar)g, (uchar)r));
-    }
-
-    /* running the watershed detection based on the image and the markers */
+        /* running the watershed detection based on the image and the markers */
     watershed(img, markers);
 
     /* retrieve the objects */
@@ -108,7 +109,7 @@ void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<bound
 			 else if( idx <= 0 || idx > compCount )
 				 wshed.at< cv::Vec3b >(j,i) = cv::Vec3b(0,0,0);
 			 else {
-				 wshed.at< cv::Vec3b >(j,i) = colorTab[idx - 1];
+				 wshed.at< cv::Vec3b >(j,i) = colorTab[(idx - 1)%MAX_COLOR];
 
 				 if(i > objBound[idx-1].imax)
 					 objBound[idx-1].imax = i;
