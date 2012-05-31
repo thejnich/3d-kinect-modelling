@@ -24,6 +24,7 @@ struct marker {
 typedef enum {
 	LIVE,
 	PAUSED,
+	DETECTING,
 	DETECTED,
 	SELECTED,
 	RENDERED

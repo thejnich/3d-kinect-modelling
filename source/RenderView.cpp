@@ -57,6 +57,7 @@ RenderView::RenderView()
 
 	displayTex = true;
 	displayColor = true;
+	detector.init(depth_rgb, RES_WIDTH, RES_HEIGHT);
 }
 
 RenderView::~RenderView() 
@@ -157,6 +158,10 @@ void RenderView::paintGL()
 	glRotatef(zRot / 16.0, 0.0, 0.0, 1.0);
 	glTranslatef(0.0f, 0.0f, -(float)zoom / 120.0f);
 
+	if(state == DETECTING) {
+		detector.detect(nobjects, objects, objBound, depth_rgb);
+	}
+
 	/*
 	 * Render the generated mesh if it exists, or the point cloud
 	 */
@@ -172,7 +177,8 @@ void RenderView::paintGL()
 	if (displayTex)
 	{
 		renderRGB_DepthColor_Textures();
-		renderMarkerList();
+		if(state !=DETECTING)
+			renderMarkerList();
 	}
 
 	glFlush();
@@ -368,7 +374,7 @@ void RenderView::wheelEvent(QWheelEvent *event)
 
 void RenderView::mousePressEvent(QMouseEvent *event)
 {
-	if(ctrlPressed && (nobjects == 0) && (state == PAUSED)) {
+	if(ctrlPressed && (nobjects == 0)) {
 		if(mouseInsideMarkingRegion(event))
 		{
 			currentMarker.points.push_back(event->pos());
@@ -377,7 +383,7 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 			detector.startMarkingRegion(i, j);
 		}
 	}
-	else if(ctrlPressed && (nobjects > 0) && (state == DETECTED || state == SELECTED)) {
+	else if(ctrlPressed && (nobjects > 0) && (state == DETECTED || state == SELECTED || state == DETECTING)) {
 		if(mouseInsideMarkingRegion(event))
 		{
 			for (int p = 0; p < RES_PIXELS; p++)
@@ -393,7 +399,7 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
 			selectedObject = objects.at(j * RES_WIDTH + i);
-			updateStatusBar(SELECTED);
+		//	updateStatusBar(SELECTED);
 
 			bool first = true;
 			for (int p = 0; p < RES_PIXELS; p++)
@@ -426,7 +432,7 @@ bool RenderView::mouseInsideMarkingRegion(QMouseEvent *event) {
 
 void RenderView::mouseReleaseEvent(QMouseEvent *event)
 {
-	if (ctrlPressed && (state == PAUSED)) {
+	if (ctrlPressed) {
 		markerList.push_back(currentMarker);
 		currentMarker.clear();
 		detector.stopMarkingRegion();
@@ -439,7 +445,7 @@ void RenderView::mouseMoveEvent(QMouseEvent *event)
 	int dy = event->y() - lastPos.y();
 
 	if (event->buttons() & Qt::LeftButton) {
-		if(ctrlPressed && mouseInsideMarkingRegion(event) && (nobjects == 0) && (state == PAUSED)) {
+		if(ctrlPressed && mouseInsideMarkingRegion(event) && (nobjects == 0)) {
 			currentMarker.points.push_back(event->pos());
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
@@ -476,7 +482,6 @@ void RenderView::pause(bool paused)
 		updateStatusBar(PAUSED);
 		m_device->stopDepth();
 		m_device->stopVideo();
-		detector.init(depth_rgb, RES_WIDTH, RES_HEIGHT);
 	}
 	else {
 		updateStatusBar(LIVE);
@@ -548,25 +553,27 @@ void RenderView::clearMarkerList() {
 
 void RenderView::detect()
 {
-	if (state == PAUSED)
+	if (state != DETECTING)
 	{
-		detector.detect(nobjects, objects, objBound, depth_rgb);
-		updateStatusBar(DETECTED);
-		clearMarkerList();
+		state = DETECTING;
+
+		//updateStatusBar(DETECTED);
+		//clearMarkerList();
+	}
+	else
+	{
+		state = LIVE;
 	}
 }
 
 void RenderView::renderMarkerList() 
 {
-	if (state == PAUSED)
-	{
-		if(ctrlPressed) {
-			renderMarker(&currentMarker);
-		}
+	if(ctrlPressed) {
+		renderMarker(&currentMarker);
+	}
 
-		for(int i = 0; i < (int)markerList.size(); ++i) {
-			renderMarker(&markerList[i]);
-		}
+	for(int i = 0; i < (int)markerList.size(); ++i) {
+		renderMarker(&markerList[i]);
 	}
 }
 

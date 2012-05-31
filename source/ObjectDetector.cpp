@@ -16,6 +16,7 @@ ObjectDetector::~ObjectDetector()
 
 void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 {
+	std::cout << "init" << std::endl;
 	// create matrix from rgb data
     img = cv::Mat(height, width, CV_8UC3, rgb.data());
     if (img.empty())
@@ -37,6 +38,7 @@ void ObjectDetector::startMarkingRegion(int x, int y)
 
 void ObjectDetector::addMarkerToCurrentRegion(int x, int y)
 {
+	std::cout << "adding" << std::endl;
     cv::Point pt(x, y);
     if( prevPt.x < 0 )
     {
@@ -53,6 +55,7 @@ void ObjectDetector::stopMarkingRegion()
 
 void ObjectDetector::detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map)
 {
+    img = cv::Mat(480, 640, CV_8UC3, map.data());
     /* find contours based on the markers */
     std::vector< std::vector<cv::Point> > contours;
     std::vector<cv::Vec4i> hierarchy;
