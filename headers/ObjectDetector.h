@@ -16,6 +16,7 @@ public:
 
     void init(std::vector<uint8_t>& rgb, int width, int height);
 
+	void clearMarkers();
     void startMarkingRegion(int x, int y);
     void addMarkerToCurrentRegion(int x, int y);
     void stopMarkingRegion();

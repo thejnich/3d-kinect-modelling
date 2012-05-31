@@ -40,6 +40,10 @@ void ObjectDetector::init(std::vector<uint8_t> &rgb, int width, int height)
 
 }
 
+void ObjectDetector::clearMarkers() {
+	markerMask = cv::Scalar::all(0);
+}
+
 void ObjectDetector::startMarkingRegion(int x, int y)
 {
     prevPt = cv::Point(x, y);

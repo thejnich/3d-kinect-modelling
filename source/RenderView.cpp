@@ -549,6 +549,7 @@ void RenderView::ctrlUp() {
 
 void RenderView::clearMarkerList() {
 	markerList.clear();
+	detector.clearMarkers();
 }
 
 void RenderView::detect()
@@ -563,6 +564,7 @@ void RenderView::detect()
 	else
 	{
 		state = LIVE;
+		nobjects = selectedObject = 0;
 	}
 }
 
