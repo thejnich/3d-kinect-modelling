@@ -45,7 +45,7 @@ void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& img
 	cv::Mat markers(img.size(), CV_8UC3);
 	markers = cv::Scalar::all(0);
 	int idx = 0, compCount = 0;
-	int lineThickness = 1;//CV_FILLED;
+	int lineThickness = CV_FILLED;
 	int lineType = 8; // 8-connected line (see CV docs for more details)
 	cv::Scalar color( 255, 0,0 );
 	/* iterate through top level contours, and draw to markers */ 

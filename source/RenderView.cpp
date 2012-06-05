@@ -311,8 +311,7 @@ void RenderView::renderPointCloud() {
 	float x = -1., y = 1.;
 	for (int i = 0; i < RES_PIXELS; i++) {
 
-		if( (depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject > 0 && objects[i] == selectedObject)) ||
-				(depth[i] > frontCutoff && depth[i] < rearCutoff && (selectedObject == 0)) ) {
+		if( depth[i] > frontCutoff && depth[i] < rearCutoff && ( (state==DETECTING && depth_rgb[3*(i+RES_WIDTH)]==255) || state!=DETECTING ) ) {
 			glVertex3f(x, y, (float)depth[i] / 100.0f);
 			if (displayColor)
 			{
