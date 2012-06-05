@@ -40,6 +40,29 @@ void ObjWriter::createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t>
 
 }
 
+void ObjWriter::createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t> depth, vector<uint8_t> filter) {
+		
+	float xWorld = -1.0f, yWorld = 1.0f, zWorld;
+
+	for (int i = 0; i < 640 * 480; i++) {
+		if( filter[3*(i+640)]==255) {
+			// multiply by -1 because depth is oposite in these file formats compared with rendering in openGL
+			zWorld = -1.f*(float)depth[i]/100.0f;
+			vertex v = {xWorld, yWorld, zWorld};
+			vertices->push_back(v);
+		}
+
+		if (i % 640 == 0) {
+			yWorld -= 1.f / 320.f;
+			xWorld = -1.f;
+		} else {
+			xWorld += 1.f / 240.f;
+		}
+	}
+
+}
+
+
 void ObjWriter::writePlyHeader(ofstream *file, int numVertices) {
 	*file << "ply\n";
 	*file << "format ascii 1.0\n";
@@ -67,11 +90,8 @@ void ObjWriter::writePcdHeader(ofstream *file, int numVertices) {
 	*file << "DATA ascii\n";
 }
 
-bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff) {
+bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<uint8_t> filter) {
 	
-	if(selectedObj <= 0)
-		return false;
-
 	ofstream xyzFile(XYZ_PATH);
 	if(!xyzFile.is_open()) {
 		printf("Error opening output file at %s\n", XYZ_PATH);
@@ -79,7 +99,7 @@ bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<int> objects, int sel
 	}
 
 	vector<vertex> vertices;
-	createPointsFromDepth(&vertices, depth, objects, selectedObj, frontCutoff, rearCutoff);
+	createPointsFromDepth(&vertices, depth, filter);
 
 	if(!writePointsToFile(&vertices, &xyzFile))
 		return false;

@@ -551,7 +551,7 @@ void RenderView::exportXyz()
 {
 	/* ensure no data capture happens when trying to export */
 	emit pausePlease();
-	if(!ObjWriter::exportAsXyz(depth, objects, selectedObject, frontCutoff, rearCutoff)) {
+	if(!ObjWriter::exportAsXyz(depth, depth_rgb)) {
 		QMessageBox::warning(this, "Export error", "Export failed");
 		return;
 	}
