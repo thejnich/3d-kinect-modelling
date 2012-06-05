@@ -61,9 +61,13 @@ RenderView::RenderView()
 
 RenderView::~RenderView() 
 {
-	// emit signal, rather than stopping video/depth directly because
-	// if already paused, calling stopDepth/Video will generate exception
-	emit pausePlease();
+	try {
+		m_device->stopDepth();
+		m_device->stopVideo();
+	} catch (std::runtime_error) {
+		// if already stopped, will throw error, just ignore and quit
+	}
+
 }
 
 void RenderView::setStatusBar(QStatusBar* status)
