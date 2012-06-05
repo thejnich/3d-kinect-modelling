@@ -59,7 +59,6 @@ RenderView::RenderView()
 
 	displayTex = true;
 	displayColor = true;
-	//detector.init(depth_rgb, RES_WIDTH, RES_HEIGHT);
 }
 
 RenderView::~RenderView() 
@@ -175,7 +174,7 @@ void RenderView::paintGL()
 	glTranslatef(0.0f, 0.0f, -(float)zoom / 120.0f);
 
 	if(state == DETECTING) {
-		detector.detect(nobjects, objects, objBound, depth_rgb, depth_gray, depth_bw);
+		detector.detect(depth_rgb, depth_gray, depth_bw);
 	}
 
 	/*
@@ -417,7 +416,6 @@ void RenderView::mousePressEvent(QMouseEvent *event)
 			currentMarker.points.push_back(event->pos());
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
-			detector.startMarkingRegion(i, j);
 		}
 	}
 	else if(ctrlPressed && (nobjects > 0) && (state == DETECTED || state == SELECTED || state == DETECTING)) {
@@ -472,7 +470,6 @@ void RenderView::mouseReleaseEvent(QMouseEvent *event)
 	if (ctrlPressed) {
 		markerList.push_back(currentMarker);
 		currentMarker.clear();
-		detector.stopMarkingRegion();
 	}
 }
 
@@ -486,7 +483,6 @@ void RenderView::mouseMoveEvent(QMouseEvent *event)
 			currentMarker.points.push_back(event->pos());
 			int i = 0, j = 0;
 			worldCoordToPixelCoord(event->x(), event->y(), i, j);
-			detector.addMarkerToCurrentRegion(i, j);
 		}
 		else {
 			setXRotation(xRot - 8 * dy);
@@ -586,7 +582,6 @@ void RenderView::ctrlUp() {
 
 void RenderView::clearMarkerList() {
 	markerList.clear();
-	detector.clearMarkers();
 }
 
 void RenderView::detect()

@@ -11,24 +11,15 @@
 class ObjectDetector
 {
 public:
-    ObjectDetector();
-    ~ObjectDetector();
+	ObjectDetector();
+	~ObjectDetector();
 
-    void init(std::vector<uint8_t>& rgb, int width, int height);
-
-	void clearMarkers();
-    void startMarkingRegion(int x, int y);
-    void addMarkerToCurrentRegion(int x, int y);
-    void stopMarkingRegion();
-
-    void detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW);
+	void detect(std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW);
 
 private:
-	const static int MAX_COLOR = 10;	
-    cv::Point prevPt;
-    cv::Mat   markerMask;
-    cv::Mat   img;
-    std::vector<cv::Vec3b> colorTab;
+	cv::Mat   markerMask;
+	cv::Mat   img;
+	std::vector<cv::Vec3b> colorTab;
 };
 
 #endif // _OBJECT_DETECTOR_H
