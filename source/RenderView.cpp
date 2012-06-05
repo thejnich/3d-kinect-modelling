@@ -32,6 +32,8 @@ RenderView::RenderView()
 	depth_cache = std::vector< std::vector<uint16_t> >();
 	rgb = std::vector<uint8_t>(RES_PIXELS*4);
 	depth_rgb = std::vector<uint8_t>(RES_PIXELS*3);
+	depth_gray = std::vector<uint8_t>(RES_PIXELS);
+	depth_bw = std::vector<uint8_t>(RES_PIXELS);
 	xRot = -30 * 16;
 	yRot = -30 * 16;
 	zRot = 0;
@@ -57,14 +59,18 @@ RenderView::RenderView()
 
 	displayTex = true;
 	displayColor = true;
-	detector.init(depth_rgb, RES_WIDTH, RES_HEIGHT);
+	//detector.init(depth_rgb, RES_WIDTH, RES_HEIGHT);
 }
 
 RenderView::~RenderView() 
 {
-	// emit signal, rather than stopping video/depth directly because
-	// if already paused, calling stopDepth/Video will generate exception
-	emit pausePlease();
+	try {
+		m_device->stopDepth();
+		m_device->stopVideo();
+	}
+	catch(std::runtime_error) {
+		// if depth or video is already stopped, runtime_error is thrown, ignore and quit
+	}
 }
 
 void RenderView::setStatusBar(QStatusBar* status)
@@ -136,6 +142,16 @@ void RenderView::initializeGL()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	glGenTextures(1, &gl_gray_tex);
+	glBindTexture(GL_TEXTURE_2D, gl_gray_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glGenTextures(1, &gl_bw_tex);
+	glBindTexture(GL_TEXTURE_2D, gl_bw_tex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluPerspective(45, 4.0f / 3.0f, 0.001, 1000);
@@ -147,8 +163,8 @@ void RenderView::paintGL()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
-	//m_device->getDepth(depth);
-	getDepthAndUpdateCache();
+	m_device->getDepth(depth);
+	//getDepthAndUpdateCache();
 	m_device->getRGB(rgb);
 	m_device->getDepthRGB(depth_rgb);
 
@@ -159,7 +175,7 @@ void RenderView::paintGL()
 	glTranslatef(0.0f, 0.0f, -(float)zoom / 120.0f);
 
 	if(state == DETECTING) {
-		detector.detect(nobjects, objects, objBound, depth_rgb);
+		detector.detect(nobjects, objects, objBound, depth_rgb, depth_gray, depth_bw);
 	}
 
 	/*
@@ -227,6 +243,27 @@ void RenderView::renderRGB_DepthColor_Textures() {
 	glTexCoord2f(1, 1); glVertex3f(xWindowBound,-1,0);
 	glTexCoord2f(0, 1); glVertex3f(0 - 2 ,-1,0);
 	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, gl_gray_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, 1, RES_WIDTH, RES_HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &depth_gray[0]);
+	glBegin(GL_TRIANGLE_FAN);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glTexCoord2f(0, 0); glVertex3f(xWindowBound, 1,0);
+	glTexCoord2f(1, 0); glVertex3f(xWindowBound+4.f/3.f, 1,0);
+	glTexCoord2f(1, 1); glVertex3f(xWindowBound+4.f/3.f, 0,0);
+	glTexCoord2f(0, 1); glVertex3f(xWindowBound ,0,0);
+	glEnd();
+
+	glBindTexture(GL_TEXTURE_2D, gl_bw_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, 1, RES_WIDTH, RES_HEIGHT, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, &depth_bw[0]);
+	glBegin(GL_TRIANGLE_FAN);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
+	glTexCoord2f(0, 0); glVertex3f(xWindowBound, 0,0);
+	glTexCoord2f(1, 0); glVertex3f(xWindowBound+4.f/3.f, 0,0);
+	glTexCoord2f(1, 1); glVertex3f(xWindowBound+4.f/3.f, -1,0);
+	glTexCoord2f(0, 1); glVertex3f(xWindowBound ,-1,0);
+	glEnd();
+
 
 	glDisable(GL_TEXTURE_2D);
 }

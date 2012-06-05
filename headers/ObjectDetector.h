@@ -21,7 +21,7 @@ public:
     void addMarkerToCurrentRegion(int x, int y);
     void stopMarkingRegion();
 
-    void detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map);
+    void detect(int& n, std::vector<int>& objects, std::vector<boundRect>& objBound, std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW);
 
 private:
 	const static int MAX_COLOR = 10;	

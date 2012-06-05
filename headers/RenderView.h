@@ -99,6 +99,9 @@ private:
 	Freenect::Freenect freenect;
 	GLuint gl_depth_tex;
 	GLuint gl_rgb_tex;
+	GLuint gl_gray_tex;
+	GLuint gl_bw_tex;
+	
 	bool displayTex;
 	QPoint lastPos;
 	int xRot;
@@ -114,6 +117,8 @@ private:
 	std::vector< std::vector<uint16_t> > depth_cache;
 	std::vector<uint8_t> rgb;
 	std::vector<uint8_t> depth_rgb;
+	std::vector<uint8_t> depth_gray;
+	std::vector<uint8_t> depth_bw;
 	uint8_t saveColor[3];
 	bool displayColor;
 
