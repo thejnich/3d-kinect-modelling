@@ -6,6 +6,7 @@
 #include <opencv/cv.h>
 #include "Primitives.h"
 #include <QDebug>
+#include <QDateTime>
 #include "opencv2/highgui/highgui.hpp"
 
 class ObjectDetector

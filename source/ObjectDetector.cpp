@@ -34,7 +34,7 @@ void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& img
 	std::copy(grayMat.data, grayMat.data + (grayMat.size().width * grayMat.size().height), imgGray.begin());
 
 	if(capture) {
-		cv::imwrite("capture.jpg", bw);
+		cv::imwrite(QDateTime::currentDateTime().toString("hhmmss_ddMMyy.jpg").toStdString(), bw);
 	}
 
 	/* find contours based on the markers */
