@@ -1,5 +1,6 @@
 /*
  * Detects objects in scene based on user entered markers
+ * edit: markers no longer user entered. Simply find contours based on depth rgb buffer
  * Based on OpenCV watershed.cpp example
  */
 
@@ -33,6 +34,7 @@ void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& img
 	std::copy(bw.data, bw.data + (bw.size().width * bw.size().height), imgBW.begin());
 	std::copy(grayMat.data, grayMat.data + (grayMat.size().width * grayMat.size().height), imgGray.begin());
 
+	/* save the bw buffer to a jpg, named by timestamp */
 	if(capture) {
 		cv::imwrite(QDateTime::currentDateTime().toString("hhmmss_ddMMyy.jpg").toStdString(), bw);
 	}
