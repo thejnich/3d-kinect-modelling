@@ -15,6 +15,22 @@ bool ObjWriter::writePointsToFile(vector<vertex> *vertices, ofstream* file) {
 	return true;
 }
 
+bool ObjWriter::writePointsToFile(vector<Point> *points, ofstream* file) {
+
+	if(!file->is_open()){
+		printf("error writing data to file\n");
+		return false;
+	}
+
+	Point p;
+	for (int i = 0; i < (int)points->size(); ++i) {
+		p = (*points)[i];
+		*file << fixed << p.x() << " " << fixed << p.y() << " " << fixed << p.z() << "\n"; 
+	}
+	return true;
+
+}
+
 /*
 	add points(xyz) to vertices, based on depth map and selected object provided
 */
@@ -101,7 +117,28 @@ bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<uint8_t> filter) {
 	vector<vertex> vertices;
 	createPointsFromDepth(&vertices, depth, filter);
 
-	if(!writePointsToFile(&vertices, &xyzFile))
+
+	/*
+	 * use CGAL to remove outliers
+	 */
+	std::vector<Point> points;
+	// brute force conversion to CGAL Point_3 type
+	for(std::vector<vertex>::const_iterator it = vertices.begin(); it != vertices.end(); ++it) {
+		points.push_back(Point((double)it->x, (double)it->y, (double)it->z));
+	}
+
+	// Removes outliers using erase-remove idiom.
+	const double removed_percentage = 5.0;	// percentage of points to remove
+	const int nb_neighbors = 24;				// considers 24 nearest neighbor points
+	points.erase(CGAL::remove_outliers(points.begin(), points.end(),
+				CGAL::Dereference_property_map<Point>(),
+				nb_neighbors, removed_percentage), 
+			points.end());
+
+	// Optional: after erase(), use Scott Meyer's "swap trick" to trim excess capacity
+	std::vector<Point>(points).swap(points);
+
+	if(!writePointsToFile(&points, &xyzFile))
 		return false;
 	xyzFile.close();
 	printf("done\n");

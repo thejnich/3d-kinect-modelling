@@ -8,8 +8,20 @@
 #include <QtOpenGL>
 #include "Primitives.h"
 
+// CGAL
+#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/property_map.h>
+#include <CGAL/remove_outliers.h>
+#include <CGAL/IO/read_xyz_points.h>
+#include <CGAL/IO/write_xyz_points.h>
+
+// types
+typedef CGAL::Exact_predicates_inexact_constructions_kernel Kernel;
+typedef Kernel::Point_3 Point;
+
 using namespace std;
 
+// file paths
 #define PLY_PATH "./out.ply"
 #define OBJ_PATH "./out.obj"
 #define XYZ_PATH "./out.xyz"
@@ -25,6 +37,7 @@ public:
 
 private:
 	static bool writePointsToFile(std::vector<vertex> *vertices, ofstream *file); 
+	static bool writePointsToFile(std::vector<Point> *vertices, ofstream *file); 
 	static void createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t> depth, vector<int> objects, int selectedObj, int frontCutoff, int rearCutoff); 
 	static void createPointsFromDepth(vector<vertex> *vertices, vector<uint16_t> depth, vector<uint8_t> filter); 
 	static void writePlyHeader(ofstream *file, int numVertices); 
