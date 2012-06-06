@@ -48,15 +48,15 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	connect(frontCutoffPlane, SIGNAL(valueChanged(int)), renderView, SLOT(setFrontCutoff(int)));
 
 	controlLayout->addWidget(pause_button);
-	controlLayout->addWidget(exportObj_button);
-	controlLayout->addWidget(exportPly_button);
+//	controlLayout->addWidget(exportObj_button);
+//	controlLayout->addWidget(exportPly_button);
 	controlLayout->addWidget(exportXyz_button);
-	controlLayout->addWidget(exportPcd_button);
-	controlLayout->addWidget(new QLabel(tr("Rear Cutoff Plane")));
+//	controlLayout->addWidget(exportPcd_button);
+/*	controlLayout->addWidget(new QLabel(tr("Rear Cutoff Plane")));
 	controlLayout->addWidget(rearCutoffPlane);
 	controlLayout->addWidget(new QLabel(tr("Front Cutoff Plane")));
 	controlLayout->addWidget(frontCutoffPlane);
-	controlLayout->addWidget(dump_button);
+*/	controlLayout->addWidget(dump_button);
 	controlLayout->addWidget(pic_button);
 
 	mainLayout->addWidget(renderView, 0, 1, 2, 2);
