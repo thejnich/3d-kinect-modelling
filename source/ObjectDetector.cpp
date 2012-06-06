@@ -13,7 +13,7 @@ ObjectDetector::~ObjectDetector()
 {
 }
 
-void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW)
+void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW, bool capture)
 {
 	// construct a cv::Mat from rgb data passed in 
 	img = cv::Mat(480, 640, CV_8UC3, map.data());
@@ -32,6 +32,10 @@ void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& img
 	/* copy the grayscale and bw image to vectors passed in, for display in render view */ 
 	std::copy(bw.data, bw.data + (bw.size().width * bw.size().height), imgBW.begin());
 	std::copy(grayMat.data, grayMat.data + (grayMat.size().width * grayMat.size().height), imgGray.begin());
+
+	if(capture) {
+		cv::imwrite("capture.jpg", bw);
+	}
 
 	/* find contours based on the markers */
 	std::vector< std::vector<cv::Point> > contours;
@@ -59,3 +63,4 @@ void ObjectDetector::detect(std::vector<uint8_t>& map, std::vector<uint8_t>& img
 	// copy the data back to map, for use by caller
 	std::copy(markers.data, markers.data + (markers.size().width * markers.size().height * 3), map.begin());
 }
+

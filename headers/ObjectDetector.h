@@ -14,7 +14,7 @@ public:
 	ObjectDetector();
 	~ObjectDetector();
 
-	void detect(std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW);
+	void detect(std::vector<uint8_t>& map, std::vector<uint8_t>& imgGray, std::vector<uint8_t>& imgBW, bool capture);
 
 private:
 	cv::Mat   markerMask;

@@ -36,6 +36,10 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	dump_button = new QPushButton("Dump data");
 	connect(dump_button, SIGNAL(clicked()), renderView, SLOT(dump()));
 
+	pic_button = new QPushButton(QIcon("camera.jpeg"), "");
+	connect(pic_button, SIGNAL(clicked()), renderView, SLOT(capturePic()));
+	pic_button->setToolTip("Capture binary image of frame");
+
 	/* front and rear depth buffer cutoffs */
 	QSlider *rearCutoffPlane = createCutoffSlider();
 	connect(rearCutoffPlane, SIGNAL(valueChanged(int)), renderView, SLOT(setRearCutoff(int)));
@@ -53,6 +57,7 @@ Window::Window(QWidget *parent) : QMainWindow(parent)
 	controlLayout->addWidget(new QLabel(tr("Front Cutoff Plane")));
 	controlLayout->addWidget(frontCutoffPlane);
 	controlLayout->addWidget(dump_button);
+	controlLayout->addWidget(pic_button);
 
 	mainLayout->addWidget(renderView, 0, 1, 2, 2);
 	mainLayout->addLayout(controlLayout, 0, 3, 1, 2);

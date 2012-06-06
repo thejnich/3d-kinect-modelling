@@ -174,7 +174,7 @@ void RenderView::paintGL()
 	glTranslatef(0.0f, 0.0f, -(float)zoom / 120.0f);
 
 	if(state == DETECTING) {
-		detector.detect(depth_rgb, depth_gray, depth_bw);
+		detector.detect(depth_rgb, depth_gray, depth_bw, false);
 	}
 
 	/*
@@ -843,4 +843,8 @@ void RenderView::dump() {
 		}
 	}
 	printf("done\n");
+}
+
+void RenderView::capturePic() {
+	detector.detect(depth_rgb, depth_gray, depth_bw, true);
 }

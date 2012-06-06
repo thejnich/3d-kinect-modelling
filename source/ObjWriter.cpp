@@ -128,7 +128,7 @@ bool ObjWriter::exportAsXyz(vector<uint16_t> depth, vector<uint8_t> filter) {
 	}
 
 	// Removes outliers using erase-remove idiom.
-	const double removed_percentage = 5.0;	// percentage of points to remove
+	const double removed_percentage = 15.0;	// percentage of points to remove
 	const int nb_neighbors = 24;				// considers 24 nearest neighbor points
 	points.erase(CGAL::remove_outliers(points.begin(), points.end(),
 				CGAL::Dereference_property_map<Point>(),

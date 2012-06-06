@@ -71,6 +71,7 @@ public slots:
 	void ctrlDown();
 	void ctrlUp();
 	void dump();
+	void capturePic();
 
 signals:
 	void pausePlease();
