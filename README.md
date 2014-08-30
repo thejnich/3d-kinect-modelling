@@ -1,3 +1,5 @@
+[![Version](http://img.shields.io/badge/version-prototype-yellow.svg)](#)
+
 3d-kinect-modelling
 ===================
 
